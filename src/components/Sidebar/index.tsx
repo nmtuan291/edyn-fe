@@ -6,7 +6,7 @@ const Sidebar: React.FC = () => {
     
 
     return (
-        <div className="border-r h-screen p-4 border-gray-300 w-full">
+        <div className="border-r h-screen p-4 border-gray-300 w-full bg-white">
             <ul className="flex flex-col gap-4">
                 <li className="flex items-center gap-2">
                     <svg

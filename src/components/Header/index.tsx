@@ -1,27 +1,50 @@
 import { useState, useEffect, useRef } from "react";
 import LoginForm from "../LoginForm";
+import RegistrationForm from "../RegistrationForm";
+import { Notifications, Person, Logout, Settings, Add } from "@mui/icons-material";
+import tesAvatar from "../ThreadCard/avatar_default_0.png"
+import MobileSidebar from "../MobileSidebar/MobileSidebar";
+import { useNavigate } from "react-router-dom";
 
 const Header: React.FC = () => {
     const [isOptionOpen, setIsOptionOpen] = useState<boolean>(false);
     const [showLoginForm, setShowLoginForm] = useState<boolean>(false);
+    const [showRegistrationForm, setShowRegistrationForm] = useState<boolean>(false);
+	const [isUserOpen, setIsUserOpen] = useState<boolean>(false);
     const optionRef = useRef<HTMLDivElement>(null);
+	const userProfileRef= useRef<HTMLDivElement>(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const closeOption = (event: MouseEvent) => {
-            if (optionRef.current && !optionRef.current.contains(event.target as Node)) {
-                setIsOptionOpen(false);
-            }
+            setIsOptionOpen(false);
         }
 
-        document.addEventListener("click", closeOption);
+		const closeUserProfile = (event: MouseEvent) => {
+            setIsUserOpen(false);
+		}
 
-        return () => document.removeEventListener("click", closeOption);
+        document.addEventListener("click", closeOption);
+        document.addEventListener("click", closeUserProfile);
+
+        return () => {
+			document.removeEventListener("click", closeOption);
+			document.removeEventListener("click", closeUserProfile);
+		}
     }, [])
 
     return (
         <>
-            <LoginForm showForm={showLoginForm} closeForm={() => setShowLoginForm(false)} />
-            <div className="flex w-full gap-1 px-4 py-2 justify-between">
+			{/* <MobileSidebar /> */}
+            <LoginForm 
+                showForm={showLoginForm} 
+                closeForm={() => setShowLoginForm(false)} 
+                openRegistrationForm={() => setShowRegistrationForm(true)}/>
+            <RegistrationForm 
+                showForm={showRegistrationForm}
+                closeForm={() => setShowRegistrationForm(false)}/>
+            <div className="flex w-full gap-1 px-4 py-2 justify-between border-b border-gray-300">
                 <svg
                     className="w-6 h-8 md:hidden"
                     fill="none"
@@ -36,7 +59,7 @@ const Header: React.FC = () => {
                     type="text"
                     className="bg-gray-200 rounded-3xl px-2 w-60 md:w-3xl" 
                     placeholder="Tìm kiếm trên Edyn" />
-                <div className="flex gap-1">
+                <div className="flex gap-1 hidden">
                     <button 
                         className="rounded-3xl text-sm bg-orange-600 text-white h-8 px-2 cursor-pointer" 
                         onClick={(event) => {
@@ -70,6 +93,42 @@ const Header: React.FC = () => {
                                 <button className="hover:bg-gray-100 cursor-pointer p-2">Đăng ký</button>
                         </div>
                     </div>
+                </div>
+                <div className="flex gap-2">
+					<Add style={{ fontSize: 30, color: "gray"}}/>
+					<Notifications style={{ fontSize: 30, color: "gray", cursor: "pointer" }}/>
+					<div className="relative">
+						<img 
+							className="w-8 rounded-full cursor-pointer" 
+							src={tesAvatar}
+							onClick={(event) => {
+								event.stopPropagation();
+								setIsUserOpen(true);
+							}} />
+						<div className="w-2 h-2 right-0 top-6 rounded-full absolute bg-green-500"></div>
+						<div 
+							className={`absolute w-50 right-1 top-10 rounded-2xl shadow-gray-300 bg-white shadow-xl ${isUserOpen ? "" : "hidden"}`}
+							ref={userProfileRef}>
+							<div className="border-b border-gray-300 flex flex-col items-start">
+								<button className="cursor-pointer hover:bg-gray-300 rounded-t-2xl w-full h-full text-left p-2 text-sm">
+									<Person />
+									<span className="ml-1">Thông tin cá nhân</span>
+								</button>
+								<button className="cursor-pointer hover:bg-gray-300 w-full h-full p-2 text-left text-sm">
+									<Logout />
+									<span className="ml-1">Đăng xuất</span>
+								</button>
+							</div>
+							<div>
+								<button 
+                                    className="cursor-pointer hover:bg-gray-300 w-full h-full p-2 text-left rounded-b-2xl text-sm"
+                                    onClick={() => navigate("settings/account")}>
+									<Settings />
+									<span className="ml-1">Thiết lập</span>
+								</button>
+							</div>
+						</div>
+					</div>	
                 </div>
             </div>
         </>

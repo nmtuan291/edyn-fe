@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 
 interface LoginFormProps {
     showForm: boolean,
-    closeForm: () => void
+    closeForm: () => void,
+    openRegistrationForm: () => void
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistrationForm }) => {
     const [username, setUsername]  = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const loginForm = useRef<HTMLDivElement>(null);
@@ -25,6 +26,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm }) => {
 
         return () => removeEventListener("click", handleCloseForm);
     }, [])
+
+    const hanldeOpenRegistraionForm = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        closeForm();
+        openRegistrationForm();
+    }
 
     return (
         <div className={`fixed top-0 bg-[rgba(0,0,0,0.7)] w-screen h-screen flex items-center justify-center
@@ -62,6 +69,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm }) => {
                     </div>
                     <GoogleIcon style={{ color: '#4285F4', fontSize: 40 }} />
                     <FacebookRounded style={{ color: '#4285F4', fontSize: 40, marginLeft: 10 }} />
+                </div>
+                <div className="mt-2">
+                    <a className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">Quên mật khẩu?</a>
+                    <p className="text-sm mt-2">
+                        Chưa có tài khoản?
+                        <a 
+                            className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                            onClick={(event) => hanldeOpenRegistraionForm(event)}> 
+                            Đăng ký ngay
+                        </a>
+                    </p>
                 </div>
                 <button 
                     className={`mt-40 p-2 rounded-xl font-bold cursor-pointer
