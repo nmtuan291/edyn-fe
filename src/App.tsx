@@ -20,9 +20,11 @@ import Preferences from './pages/UserSetting/Preferences'
 import Home from './pages/Home'
 import Layout from './layout'
 import BottomSheet from './components/BottomSheet'
+import UserProfile from './pages/UserProfile'
+import ProfileComment from './pages/UserProfile/ProfileComment'
+import UpvotedThreads from './pages/UserProfile/UpvotedThreads'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <Routes>
@@ -34,7 +36,7 @@ function App() {
           <Route path='privacy' element={<Privacy />} />
           <Route path='preferences' element={<Preferences />} />
         </Route>
-        <Route path="/test" element={<BottomSheet title="test">
+        {/* <Route path="/test" element={<BottomSheet title="test">
           <div>
             <input placeholder='asdasd'></input>
             <input placeholder='asdasd'></input>
@@ -43,7 +45,11 @@ function App() {
             <input placeholder='asdasd'></input>
             <p className="h-3xl border p-50">asdasdadasdas</p>
           </div>
-        </BottomSheet>}></Route>
+        </BottomSheet>}></Route> */}
+        <Route path="/profile" element={<UserProfile />}>
+          <Route path="comment" element={<ProfileComment />}/>
+          <Route path="upvoted" element={<UpvotedThreads />}/>
+        </Route>
       </Route>
     </Routes>
   )
