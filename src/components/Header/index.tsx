@@ -5,12 +5,17 @@ import { Notifications, Person, Logout, Settings, Add } from "@mui/icons-materia
 import tesAvatar from "../ThreadCard/avatar_default_0.png"
 import MobileSidebar from "../MobileSidebar/MobileSidebar";
 import { useNavigate } from "react-router-dom";
+import CreateForum from "../CreateForum";
 
 const Header: React.FC = () => {
-    const [isOptionOpen, setIsOptionOpen] = useState<boolean>(false);
-    const [showLoginForm, setShowLoginForm] = useState<boolean>(false);
-    const [showRegistrationForm, setShowRegistrationForm] = useState<boolean>(false);
-	const [isUserOpen, setIsUserOpen] = useState<boolean>(false);
+    const [modalState, setModalState] = useState({
+        isOptionOpen: false,
+        showLoginForm: false,
+        showRegistrationForm: false,
+        showCreateForum: false,
+        isUserOpen: false,
+    });
+    
     const optionRef = useRef<HTMLDivElement>(null);
 	const userProfileRef= useRef<HTMLDivElement>(null);
 
@@ -18,11 +23,11 @@ const Header: React.FC = () => {
 
     useEffect(() => {
         const closeOption = (event: MouseEvent) => {
-            setIsOptionOpen(false);
+            setModalState(prev => ({ ...prev, isOptionOpen: false }));
         }
 
 		const closeUserProfile = (event: MouseEvent) => {
-            setIsUserOpen(false);
+            setModalState(prev => ({ ...prev, isUserOpen: false }));
 		}
 
         document.addEventListener("click", closeOption);
@@ -38,12 +43,15 @@ const Header: React.FC = () => {
         <>
 			{/* <MobileSidebar /> */}
             <LoginForm 
-                showForm={showLoginForm} 
-                closeForm={() => setShowLoginForm(false)} 
-                openRegistrationForm={() => setShowRegistrationForm(true)}/>
+                showForm={modalState.showLoginForm} 
+                closeForm={() => setModalState(prev => ({ ...prev, showLoginForm: false }))} 
+                openRegistrationForm={() => setModalState(prev => ({ ...prev, showRegistrationForm: true }))}/>
             <RegistrationForm 
-                showForm={showRegistrationForm}
-                closeForm={() => setShowRegistrationForm(false)}/>
+                showForm={modalState.showRegistrationForm}
+                closeForm={() => setModalState(prev => ({ ...prev, showRegistrationForm: false }))}/>
+            <CreateForum 
+                show={modalState.showCreateForum} 
+                closeModal={() => setModalState(prev => ({ ...prev, showCreateForum: false }))} />
             <div className="flex w-full gap-1 px-4 py-2 justify-between border-b border-gray-300">
                 <svg
                     className="w-6 h-8 md:hidden"
@@ -59,12 +67,12 @@ const Header: React.FC = () => {
                     type="text"
                     className="bg-gray-200 rounded-3xl px-2 w-60 md:w-3xl" 
                     placeholder="Tìm kiếm trên Edyn" />
-                <div className="flex gap-1 hidden">
+                <div className="flex gap-1">
                     <button 
                         className="rounded-3xl text-sm bg-orange-600 text-white h-8 px-2 cursor-pointer" 
                         onClick={(event) => {
                             event.stopPropagation();
-                            setShowLoginForm(true);
+                            setModalState(prev => ({ ...prev, showLoginForm: true }));
                         }}>
                             Đăng nhập
                         </button>
@@ -74,7 +82,7 @@ const Header: React.FC = () => {
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             aria-hidden="true"
-                            onClick={() => setIsOptionOpen(true)}
+                            onClick={() => setModalState(prev => ({ ...prev, isOptionOpen: true }))}
                         >
                             <circle cx="4" cy="10" r="2" />
                             <circle cx="10" cy="10" r="2" />
@@ -83,7 +91,7 @@ const Header: React.FC = () => {
                         <div 
                                 className={`border border-gray-300 rounded-lg shadow-gray-500 
                                     shadow-md z-10 absolute top-12 right-3 flex flex-col bg-white w-36
-                                    ${!isOptionOpen ? "hidden" : ""}`}
+                                    ${!modalState.isOptionOpen ? "hidden" : ""}`}
                             >
                                 <button 
                                     className="hover:bg-gray-100 cursor-pointer p-2"
@@ -95,7 +103,9 @@ const Header: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex gap-2">
-					<Add style={{ fontSize: 30, color: "gray"}}/>
+					<Add 
+                        style={{ fontSize: 30, color: "gray"}}
+                        onClick={() => setModalState(prev => ({ ...prev, showCreateForum: true }))}/>
 					<Notifications style={{ fontSize: 30, color: "gray", cursor: "pointer" }}/>
 					<div className="relative">
 						<img 
@@ -103,11 +113,11 @@ const Header: React.FC = () => {
 							src={tesAvatar}
 							onClick={(event) => {
 								event.stopPropagation();
-								setIsUserOpen(true);
+								setModalState(prev => ({ ...prev, isUserOpen: true }));
 							}} />
 						<div className="w-2 h-2 right-0 top-6 rounded-full absolute bg-green-500"></div>
 						<div 
-							className={`absolute w-50 right-1 top-10 rounded-2xl shadow-gray-300 bg-white shadow-xl ${isUserOpen ? "" : "hidden"}`}
+							className={`absolute w-50 right-1 top-10 rounded-2xl shadow-gray-300 bg-white shadow-xl ${modalState.isUserOpen ? "" : "hidden"}`}
 							ref={userProfileRef}>
 							<div className="border-b border-gray-300 flex flex-col items-start">
 								<button className="cursor-pointer hover:bg-gray-300 rounded-t-2xl w-full h-full text-left p-2 text-sm">
@@ -129,7 +139,7 @@ const Header: React.FC = () => {
 							</div>
 						</div>
 					</div>	
-                </div>
+                </div> 
             </div>
         </>
     )

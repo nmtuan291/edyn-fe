@@ -15,7 +15,7 @@ const UserSetting: React.FC = () => {
                 <NavLink to="privacy" className="p-2 w-full text-sm text-center font-bold text-gray-500">Quyền riêng tư</NavLink>
                 <NavLink to="preferences" className="p-2 w-full text-sm text-center font-bold text-gray-500">Tùy chọn</NavLink>
             </div>
-            <Outlet></Outlet>
+            <Outlet />
         </div>
     )
 }

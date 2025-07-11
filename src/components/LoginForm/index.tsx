@@ -1,6 +1,7 @@
+import axios from "../../api/axios";
 import GoogleIcon from '@mui/icons-material/Google';
-import { FacebookRounded } from '@mui/icons-material';
-import { useEffect, useRef, useState } from 'react';
+import { AccessibleForwardOutlined, FacebookRounded } from '@mui/icons-material';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 interface LoginFormProps {
     showForm: boolean,
@@ -11,6 +12,7 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistrationForm }) => {
     const [username, setUsername]  = useState<string>("");
     const [password, setPassword] = useState<string>("");
+    const [failedLogin, setFailedLogin] = useState<boolean>(false);
     const loginForm = useRef<HTMLDivElement>(null);
 
     const validInput: boolean = username.length >= 5 && password.length >= 8
@@ -27,17 +29,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
         return () => removeEventListener("click", handleCloseForm);
     }, [])
 
-    const hanldeOpenRegistraionForm = (event: React.MouseEvent) => {
+    const hanldeOpenRegistrationForm = (event: React.MouseEvent) => {
         event.stopPropagation();
         closeForm();
         openRegistrationForm();
+    }
+
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post("/auth/login", {
+                username,
+                password,
+                isEmail: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)
+            })
+            console.log(response.data);
+            localStorage.setItem("jwt", response.data.token);
+        } catch (error) {
+            setFailedLogin(true);
+        }
     }
 
     return (
         <div className={`fixed top-0 bg-[rgba(0,0,0,0.7)] w-screen h-screen flex items-center justify-center
             ${showForm ? "" : "hidden"} z-50`}>
             <div 
-                className="bg-white h-10/12 p-16 rounded-2xl flex flex-col gap-4 w-[500px]"
+                className="bg-white h-10/12 p-16 rounded-2xl flex flex-col gap-2 w-[500px]"
                 ref={loginForm}>
                 <h1 className="text-center text-2xl font-bold">Đăng nhập</h1>
                 <p>
@@ -60,7 +76,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                         onChange={(event) => setPassword(event.target.value)}
                         value={password}/>
                 </div>
-                <span className='text-red-500 text-sm hidden'>Thông tin đăng nhập không chính xác</span>
+                <span className={`text-red-500 text-sm`}>{failedLogin ? "Thông tin đăng nhập không chính xác" : ""}</span>
                 <div>
                     <div className="flex items-center my-4">
                         <div className="flex-grow border-t border-gray-300"></div>
@@ -76,7 +92,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                         Chưa có tài khoản?
                         <a 
                             className="text-blue-600 hover:text-blue-800 cursor-pointer"
-                            onClick={(event) => hanldeOpenRegistraionForm(event)}> 
+                            onClick={(event) => hanldeOpenRegistrationForm(event)}> 
                             Đăng ký ngay
                         </a>
                     </p>
@@ -84,7 +100,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                 <button 
                     className={`mt-40 p-2 rounded-xl font-bold cursor-pointer
                         ${!validInput ? "bg-gray-300 text-gray-500" : "bg-orange-600 text-white"}`}
-                    disabled={validInput}
+                    
+                    onClick={() => handleLogin()}
                 >
                     Đăng nhập
                 </button>

@@ -5,7 +5,7 @@ import Header from './components/Header'
 import ThreadCard from './components/ThreadCard'
 import ForumBanner from './components/ForumBanner'
 import Sidebar from './components/Sidebar'
-import Forum from './pages/Forum'
+import Forum from './pages/Realm'
 import ForumDescription from './components/ForumDescription'
 import ThreadContent from './pages/Thread/ThreadContent'
 import LoginForm from './components/LoginForm'
@@ -23,6 +23,8 @@ import BottomSheet from './components/BottomSheet'
 import UserProfile from './pages/UserProfile'
 import ProfileComment from './pages/UserProfile/ProfileComment'
 import UpvotedThreads from './pages/UserProfile/UpvotedThreads'
+import CreateForum from './components/CreateForum'
+import Realm from './pages/Realm'
 
 function App() {
 
@@ -50,6 +52,7 @@ function App() {
           <Route path="comment" element={<ProfileComment />}/>
           <Route path="upvoted" element={<UpvotedThreads />}/>
         </Route>
+        <Route path="/r/:id" element={<Realm />}></Route>
       </Route>
     </Routes>
   )
