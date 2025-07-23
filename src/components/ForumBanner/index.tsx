@@ -1,7 +1,8 @@
 import testBanner from "./banner.png";
 import testAvatar from "../ThreadCard/avatar_default_0.png"
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Edit } from "@mui/icons-material";
+import axios from "../../api/axios";
 
 interface ForumBannerProps {
     forumId: string,
@@ -11,9 +12,43 @@ interface ForumBannerProps {
 }
 
 const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImage, forumBanner }) => {
-    const joined = false;
+    const [permissions, setPermissions] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    
+    const fetchPermissions = async () => {
+        try {
+            const response = await axios.get(`/forum/${forumId}/permissions`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("jwt")}`
+                }
+            });
+            setPermissions(response.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
-    console.log(forumName);
+    useEffect(() => {
+        if (!forumId) 
+            return;
+        fetchPermissions();
+    }, [forumId])
+
+    const handleJoinRealm = async () => {
+        try {
+            setIsLoading(true);
+            await axios.post(`/forum/join/${forumId}`, {}, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("jwt")}`
+                }
+            });
+            await fetchPermissions();
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     return (
         <div className="">
@@ -41,7 +76,12 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
                 </div>
                 <div className="p-4 flex gap-2 md:h-20">
                     <button className="border rounded-3xl p-2">Tạo bài đăng</button>
-                    <button className={`rounded-3xl p-2 cursor-pointer ${ joined ? "bg-white border border-gray-700": "bg-gray-700 text-white"}`}>{joined ? "Đã tham gia" : "Tham gia"}</button>
+                    <button 
+                        className={`rounded-3xl p-2 cursor-pointer ${ permissions ? "bg-white border border-gray-700": "bg-gray-700 text-white"}
+                        ${ isLoading ? "opacity-70" : ""}`}
+                        onClick={handleJoinRealm}>
+                            {permissions ? "Đã tham gia" : "Tham gia"}
+                    </button>
                     <div className="flex items-center border rounded-full w-10 justify-center md:w-12">
                         <svg
                             className="w-6 h-8 text-gray-700"

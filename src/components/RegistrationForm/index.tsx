@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react"
 import GoogleIcon from '@mui/icons-material/Google';
 import { FacebookRounded, Password } from '@mui/icons-material';
-import axios from "../../api/axios";
-import { useStepContext } from "@mui/material/Step";
-import { setUser } from "../../store/user";
+import apiSlice from "../../store/api";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../store";
 
 interface RegistrationFormProps {
     showForm: boolean,
@@ -27,6 +27,9 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
     const validInput: boolean = true;
     const [stage, setStage] = useState<number>(0);
 
+    const [register, { isLoading: isRegistering }] = apiSlice.useRegisterMutation();
+    const dispatch = useDispatch<AppDispatch>();
+
     useEffect(() => {
         const handleCloseForm = (event: MouseEvent) => {
             if (registrationForm.current && !registrationForm.current.contains(event.target as Node)) {
@@ -49,35 +52,40 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
 
     const  handleNextButton = async () => {
 
-        const verifyInfo = async (field: "email" | "userName"): Promise<boolean> => {
-            const info = field === "email" ? `/verify-email?email=${encodeURIComponent(userInfo.email)}` : `/verify-user?username=${encodeURIComponent(userInfo.userName)}`;
+        const verifyInfo = async (field: "email" | "userName", value: string) => {
             try {
-                await axios.get(`/auth${info}`)
+                if (field === "email") {
+                    await dispatch(apiSlice.endpoints.verifyEmail.initiate(value)).unwrap();
+                } else {
+                    await dispatch(apiSlice.endpoints.verifyUserName.initiate(value)).unwrap();
+                }
                 return true;
             } catch (error) {
-                setErrors(prev => ({...prev, [field]: field === "email" ? "Email đã tồn tại" : "Tên đăng nhập đã tồn tại"}))
-                return false
+                setErrors(prev => ({
+                    ...prev,
+                    [field]: field === "email" ? "Email đã tồn tại" : "Tên đăng nhập đã tồn tại"
+                }));
+                return false;
             }
-
-        }
+        };
 
         switch (stage) {
             case 0:
-                const emailExists = await verifyInfo("email");
+                const emailExists = await verifyInfo("email", userInfo.email);
                 if (emailExists)
                     setStage(prev => prev + 1);
                 break;
             case 1: 
-                const userExists = await verifyInfo("userName");
+                const userExists = await verifyInfo("userName", userInfo.userName);
                 if (userExists)
                     setStage(prev => prev + 1);
                 break;
             case 2:
                 try {
-                    const repsonse = axios.post("/auth/register", userInfo);
+                    await register(userInfo).unwrap();
                 } catch (error) {
-                    console.log(error);                    
-                }
+                    console.log(error);
+                } 
                 break;
         }
     }

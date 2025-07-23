@@ -1,36 +1,26 @@
 import { useParams } from "react-router-dom"
 import ForumBanner from "../../components/ForumBanner"
 import ForumDescription from "../../components/ForumDescription"
-import Sidebar from "../../components/Sidebar"
 import ThreadCard from "../../components/ThreadCard"
-import { useEffect, useState } from "react";
-import axios from "../../api/axios";
 import type { Realm } from "../../interfaces/interfaces"
+import apiSlice from "../../store/api";
 
 const Realm: React.FC = () => {
-    const { id } = useParams();
-    const [realmData, setRealmData] = useState<Realm | null>(null);
+    const { name } = useParams();
+    const { useGetRealmQuery } = apiSlice;
+    const { data, error, isLoading } = useGetRealmQuery(name);
 
-    useEffect(() => {
-        const getRealm = async () => {
-            try {
-                const response = await axios.get(`/forum/${id}`);
-                setRealmData(response.data);
-                console.log(response.data);
-            } catch (error) {
-                console.log(error);
-            }
-        }
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error loading forum data.</div>;
+    if (!data) return null; // or a fallback
 
-        getRealm();
-    }, [id])
     return (
         <div className="">
             <ForumBanner 
-                forumId={id ?? ""}
-                forumName={realmData?.name ?? ""}
-                forumBanner={realmData?.forumBanner ?? ""}
-                forumImage={realmData?.forumImage ?? ""}/>
+                forumId={data.id ?? ""}
+                forumName={data.name ?? ""}
+                forumBanner={data.forumBanner ?? ""}
+                forumImage={data.forumImage ?? ""}/>
             <div className="flex">
                 <div className="">
                     <ThreadCard></ThreadCard>

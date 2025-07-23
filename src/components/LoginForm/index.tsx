@@ -2,6 +2,7 @@ import axios from "../../api/axios";
 import GoogleIcon from '@mui/icons-material/Google';
 import { AccessibleForwardOutlined, FacebookRounded } from '@mui/icons-material';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import apiSlice from "../../store/api";
 
 interface LoginFormProps {
     showForm: boolean,
@@ -14,6 +15,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
     const [password, setPassword] = useState<string>("");
     const [failedLogin, setFailedLogin] = useState<boolean>(false);
     const loginForm = useRef<HTMLDivElement>(null);
+
+    const [login, {isLoading}] = apiSlice.useLoginMutation();
 
     const validInput: boolean = username.length >= 5 && password.length >= 8
 
@@ -37,13 +40,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post("/auth/login", {
+            const result = await login({
                 username,
                 password,
                 isEmail: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)
-            })
-            console.log(response.data);
-            localStorage.setItem("jwt", response.data.token);
+            }).unwrap();
+            localStorage.setItem("jwt", result.token);
         } catch (error) {
             setFailedLogin(true);
         }

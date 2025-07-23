@@ -25,6 +25,8 @@ import ProfileComment from './pages/UserProfile/ProfileComment'
 import UpvotedThreads from './pages/UserProfile/UpvotedThreads'
 import CreateForum from './components/CreateForum'
 import Realm from './pages/Realm'
+import CreateThread from './pages/Realm/CreateThread';
+import "./App.css";
 
 function App() {
 
@@ -52,7 +54,8 @@ function App() {
           <Route path="comment" element={<ProfileComment />}/>
           <Route path="upvoted" element={<UpvotedThreads />}/>
         </Route>
-        <Route path="/r/:id" element={<Realm />}></Route>
+        <Route path="/r/:name" element={<Realm />} />
+        <Route path='/r/:name/create' element={<CreateThread />} />
       </Route>
     </Routes>
   )
