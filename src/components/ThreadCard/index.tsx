@@ -1,33 +1,55 @@
+import { useNavigate } from "react-router-dom";
 import testAvatar from "./avatar_default_0.png";
 import testImage from "./test_image.png";
+import ImageCarousel from "../ImageCarousel";
+import TimeAgo from 'react-timeago';
+import vietnameseStrings from 'react-timeago/lib/language-strings/vi';
+import buildFormatter from 'react-timeago/lib/formatters/buildFormatter';
 
-const ThreadCard: React.FC = () => {
+interface ThreadCardProps {
+    title: string,
+    content: string,
+    images: string[],
+    createdAt: string,
+    threadId: string,
+    voteCount: number,
+    realm: string
+}
+
+const ThreadCard: React.FC<ThreadCardProps> = ({ title, content, images, createdAt, threadId, voteCount, realm }) => {
+    const navigate = useNavigate();
+    const formatter = buildFormatter(vietnameseStrings);
 
     return (
-        <div className="border-t border-gray-300 p-2">
+        <div 
+            className="border-t border-gray-300 p-2 cursor-pointer hover:bg-gray-200"
+            onClick={() => navigate(`/r/${realm}/${threadId}`)}
+        >
             <div className="flex justify-between md:flex-row-reverse md:justify-end md: gap-3 lg:block">
                 <div>
                     <div className="flex gap-2 items-center">
                         <img className="max-w-6 rounded-xl" src={testAvatar}/>
-                        <p className="font-bold text-xs">testusername</p>
-                        <p className="text-gray-500 text-xs">2h ago</p>
+                        <span className="font-bold text-xs">testusername</span>
+                        <span className="text-gray-500 text-xs">
+                            <TimeAgo date={createdAt} formatter={formatter}/>
+                        </span>
                     </div>
-                    <p className="font-bold">Test thread title title title title title title title title title title title</p>
+                    <p className="font-bold">{title}</p>
                 </div>
-                <div className="w-24 flex items-center lg:w-96 hidden"> 
-                    <img className="w-full rounded" src={testImage}/>
+                <div className="w-24 flex items-center lg:w-96">
+                    <div className="hidden md:block">
+                        {
+                            images.length > 0 && <ImageCarousel images={images}></ImageCarousel>
+                        }
+                    </div>
+                    <div className="md:hidden">
+                        <img src={images?.[0]}></img>
+                    </div>
                 </div>
-                <p className="w-3xl text-justify text-sm hidden lg:block">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                </p>
+                <div 
+                    className="w-3xl text-justify text-sm hidden lg:block" 
+                    dangerouslySetInnerHTML={{ __html: content }}
+                />
             </div>
             <div className="flex gap-4 mt-3 text-xs font-bold text-gray-500 items-center">
                 <div className="border flex items-center rounded-3xl">
@@ -38,7 +60,7 @@ const ThreadCard: React.FC = () => {
                     >
                         <polygon points="10,5 5,15 15,15" />
                     </svg>
-                    <p>2K</p>
+                    <p>{voteCount}</p>
                     <svg
                         className="w-6 h-6 text-gray-400 hover:text-blue-500 cursor-pointer"
                         fill="currentColor"

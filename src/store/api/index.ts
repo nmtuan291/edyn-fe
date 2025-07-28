@@ -12,7 +12,7 @@ const apiSlice = createApi({
             return headers;
         }
      }),
-    tagTypes: ["Realm", "User"],
+    tagTypes: ["Realm", "User", "Comment"],
     endpoints: builder => ({
         getRealm: builder.query({
             query: name => `/forum/${name}`,
@@ -52,8 +52,26 @@ const apiSlice = createApi({
                 method: "POST",
                 body
             })
+        }),
+        getThreads: builder.query({
+            query: id => `/forumthread/${id}`,
+        }),
+        getThread: builder.query({
+            query: id => `/forumthread/thread/${id}`
+        }),
+        //Comment
+        createComment: builder.mutation({
+            query: body => ({
+                url: "/forumthread/comment/create",
+                method: "POST",
+                body
+            }),
+            invalidatesTags: ["Comment"]
+        }),
+        getComments: builder.query({
+            query: threadId => `/forumthread/${threadId}/comments`,
+            providesTags: ["Comment"]
         })
-        
     })
 })
 

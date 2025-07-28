@@ -13,10 +13,11 @@ import { Undo, Redo} from '@mui/icons-material';
 import { FormatBold, FormatItalic, StrikethroughS, FormatUnderlined, FormatListBulleted, FormatListNumbered, Image as ImageIcon } from '@mui/icons-material';
 
 interface TiptapEditorProps {
-  onContentChange?: (content: string) => void;
+  onContentChange?: (content: string) => void,
+  isCommentEditor: boolean
 }
 
-const TiptapEditor: React.FC<TiptapEditorProps> = ({ onContentChange }) => {
+const TiptapEditor: React.FC<TiptapEditorProps> = ({ onContentChange, isCommentEditor }) => {
   const editor = useEditor({
     extensions: [
     	StarterKit,
@@ -57,7 +58,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ onContentChange }) => {
       {/* Editor area */}
       <EditorContent
         editor={editor}
-        className="border border-gray-300 p-4 min-h-[200px] rounded-md ProseMirror"
+        className={`border border-gray-300 p-4 min-h-[${isCommentEditor ? "100" : "200"}px] rounded-md ProseMirror`}
       />
     </div>
   );

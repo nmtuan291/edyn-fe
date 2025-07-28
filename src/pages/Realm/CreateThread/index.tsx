@@ -198,7 +198,7 @@ const CreateThread: React.FC = () => {
                         {/* Content based on active tab */}
                         {activeTab === 'text' && (
                         <div>
-                            <TiptapEditor onContentChange={(content: string) => setEditorContent(content)}></TiptapEditor>
+                            <TiptapEditor isCommentEditor={false} onContentChange={(content: string) => setEditorContent(content)}></TiptapEditor>
                             <div className="text-right text-xs text-gray-500 mt-1">
                                 {getTextLength(editorContent)}/300
                             </div>

@@ -18,7 +18,7 @@ const Modal: React.FC<ModalProps> = ({ children, show, closeModal }) => {
 
     return (
         <div 
-            className={`fixed w-screen h-screen top-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center ${!show ? "hidden" : ""}`}
+            className={`fixed w-screen h-screen top-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center ${!show ? "hidden" : ""} z-10`}
             onClick={handleCloseModal}>
             <div className="w-96 h-auto bg-white rounded-3xl p-4 relative" ref={modalRef}>
                 {/* X button in the top right corner */}
