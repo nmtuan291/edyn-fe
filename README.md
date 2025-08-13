@@ -49,7 +49,7 @@ npm run dev
 
 ### Threads
 - Create thread.
-- Image upload and embedding.
+- Image upload.
 - Poll creation with multiple choice options.
 - Users can comment in threads and reply to other comments.
 
