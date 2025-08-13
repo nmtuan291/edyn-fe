@@ -28,6 +28,7 @@ import Realm from './pages/Realm'
 import CreateThread from './pages/Realm/CreateThread';
 import "./App.css";
 import Comment from './pages/Thread/Comment'
+import RealmManagement from './pages/RealmManagement'
 
 function App() {
 
@@ -58,11 +59,8 @@ function App() {
         <Route path="/r/:name" element={<Realm />} />
         <Route path="/r/:name/create" element={<CreateThread />} />
         <Route path="/r/:name/:id" element={<ThreadContent />} />
-        <Route path="test" element={
-          <div>
-              <Comment comments={["asdasd", 'asdasd']}></Comment>
-          </div>
-          }></Route>
+        <Route path="test" element={<RealmManagement></RealmManagement>}></Route>
+
       </Route>
     </Routes>
   )

@@ -352,11 +352,11 @@ const CreateThread: React.FC = () => {
 
                         {/* Action Buttons */}
                         <div className="flex gap-3 pt-4 border-t">
-                            <button className="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50">
+                            <button className="px-6 py-2 border border-green-300 rounded-full text-emerald-700 hover:bg-green-50 transition-colors">
                                 Hủy
                             </button>
                             <button 
-                                className="px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+                                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white rounded-full transition-all duration-200"
                                 onClick={handleSubmit}
                             >
                                 Đăng bài

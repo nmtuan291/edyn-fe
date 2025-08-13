@@ -13,6 +13,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@floating-ui/react": "^0.27.13",
+    "@microsoft/signalr": "^9.0.6",
     "@mui/icons-material": "^7.1.2",
     "@mui/material": "^7.1.2",
     "@reduxjs/toolkit": "^2.8.2",

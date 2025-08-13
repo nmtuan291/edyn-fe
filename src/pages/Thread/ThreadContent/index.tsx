@@ -101,7 +101,7 @@ const ThreadContent: React.FC = () => {
                 </div>
                 <CommentEditor threadId={id ?? ""} parentComment={null} closeEditor={() => {}}></CommentEditor>
                 {
-                    comments.map((comment: CommentType) => <Comment comment={comment}></Comment>)
+                    (comments ?? []).map((comment: CommentType) => <Comment comment={comment}></Comment>)
                 }
             </div>
             <div className="w-80 hidden md:block">

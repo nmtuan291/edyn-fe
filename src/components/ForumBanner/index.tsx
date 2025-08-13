@@ -75,16 +75,17 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
                     </div>
                 </div>
                 <div className="p-4 flex gap-2 md:h-20">
-                    <button className="border rounded-3xl p-2">Tạo bài đăng</button>
+                    <button className="border rounded-3xl p-2 w-32 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 cursor-pointer transition-all duration-200 text-white">Quản lý</button>
+                    <button className="border border-green-300 rounded-3xl p-2 hover:bg-green-50 transition-colors">Tạo bài đăng</button>
                     <button 
-                        className={`rounded-3xl p-2 cursor-pointer ${ permissions ? "bg-white border border-gray-700": "bg-gray-700 text-white"}
+                        className={`rounded-3xl p-2 cursor-pointer transition-all duration-200 ${ permissions ? "bg-white border border-emerald-600 text-emerald-600 hover:bg-green-50": "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"}
                         ${ isLoading ? "opacity-70" : ""}`}
                         onClick={handleJoinRealm}>
                             {permissions ? "Đã tham gia" : "Tham gia"}
                     </button>
-                    <div className="flex items-center border rounded-full w-10 justify-center md:w-12">
+                    <div className="flex items-center border border-green-300 rounded-full w-10 justify-center md:w-12 hover:bg-green-50 transition-colors">
                         <svg
-                            className="w-6 h-8 text-gray-700"
+                            className="w-6 h-8 text-emerald-700"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             aria-hidden="true"

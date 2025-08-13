@@ -1,13 +1,6 @@
 import React from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Strike from '@tiptap/extension-strike';
-import Heading from '@tiptap/extension-heading';
-import BulletList from '@tiptap/extension-bullet-list';
-import OrderedList from '@tiptap/extension-ordered-list';
-import ListItem from '@tiptap/extension-list-item';
-import Blockquote from '@tiptap/extension-blockquote';
 import Image from '@tiptap/extension-image';
 import { Undo, Redo} from '@mui/icons-material';
 import { FormatBold, FormatItalic, StrikethroughS, FormatUnderlined, FormatListBulleted, FormatListNumbered, Image as ImageIcon } from '@mui/icons-material';
@@ -21,13 +14,6 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ onContentChange, isCommentE
   const editor = useEditor({
     extensions: [
     	StarterKit,
-      Underline,
-      Strike,
-      Heading.configure({ levels: [1, 2] }),
-      BulletList,
-      OrderedList,
-      ListItem,
-      Blockquote,
       Image
     ],
     content: '',
@@ -41,7 +27,6 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ onContentChange, isCommentE
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-2">
         <button onClick={() => editor.chain().focus().toggleBold().run()} className={`${editor.isActive('bold') ? 'bg-gray-300' : ''} px-2 cursor-pointer`}><FormatBold /></button>
         <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`${editor.isActive('italic') ? 'bg-gray-300' : ''} px-2 cursor-pointer`}><FormatItalic /></button>
@@ -55,7 +40,6 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ onContentChange, isCommentE
         <button onClick={() => editor.chain().focus().redo().run()} className="px-2 cursor-pointer"><Redo /></button>
       </div>
 
-      {/* Editor area */}
       <EditorContent
         editor={editor}
         className={`border border-gray-300 p-4 min-h-[${isCommentEditor ? "100" : "200"}px] rounded-md ProseMirror`}

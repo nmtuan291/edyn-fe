@@ -102,14 +102,14 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
                         <h1 className="text-center text-2xl font-bold">Đăng ký</h1>
                         <p>
                             Với việc tiếp tục đăng ký, bạn sẽ đồng ý với 
-                            <a className="text-blue-500 hover:underline cursor-pointer"> Điều khoản dịch vụ</a> và 
-                            <a className="text-blue-500 hover:underline cursor-pointer"> Chính sách quyền riêng tư </a> 
+                            <a className="text-emerald-600 hover:text-emerald-800 hover:underline cursor-pointer transition-colors"> Điều khoản dịch vụ</a> và 
+                            <a className="text-emerald-600 hover:text-emerald-800 hover:underline cursor-pointer transition-colors"> Chính sách quyền riêng tư </a> 
                             của chúng tôi.
                         </p>
                         <div className="flex flex-col gap-2">
                             <input 
                                 type="text" 
-                                className="bg-gray-300 p-3 rounded-md" 
+                                className="bg-green-50 border border-green-200 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200" 
                                 placeholder="Email" 
                                 onChange={(event) => handleFieldChange(event, "email")}
                                 value={userInfo.email}
@@ -178,28 +178,28 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
                             <ul className="mt-2 flex flex-col gap-2">
                                 <li>
                                     <button 
-                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-gray-300 cursor-pointer ${userInfo.gender === 0 && "border border-green-500"}`}
+                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-green-50 cursor-pointer transition-colors ${userInfo.gender === 0 && "border-2 border-emerald-500 bg-green-50"}`}
                                         onClick={() => setUserInfo(prev => ({...prev, gender: 0}))}>
                                         Nam
                                     </button>
                                 </li>
                                 <li>
                                     <button 
-                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-gray-300 cursor-pointer ${userInfo.gender === 1 && "border border-green-500"}`}
+                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-green-50 cursor-pointer transition-colors ${userInfo.gender === 1 && "border-2 border-emerald-500 bg-green-50"}`}
                                         onClick={() => setUserInfo(prev => ({...prev, gender: 1}))}>
                                         Nữ
                                     </button>
                                 </li>
                                 <li>
                                     <button 
-                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-gray-300 cursor-pointer ${userInfo.gender === 2 && "border border-green-500"}`}
+                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-green-50 cursor-pointer transition-colors ${userInfo.gender === 2 && "border-2 border-emerald-500 bg-green-50"}`}
                                         onClick={() => setUserInfo(prev => ({...prev, gender: 2}))}>
                                         Không thuộc nam hay nữ
                                     </button>
                                 </li>
                                 <li>
                                     <button 
-                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-gray-300 cursor-pointer ${userInfo.gender === 3 && "border border-green-500"}`}
+                                        className={`bg-gray-200 w-full p-3 rounded-3xl font-bold hover:bg-green-50 cursor-pointer transition-colors ${userInfo.gender === 3 && "border-2 border-emerald-500 bg-green-50"}`}
                                         onClick={() => setUserInfo(prev => ({...prev, gender: 3}))}>
                                         Không muốn tiết lộ
                                     </button>
@@ -211,8 +211,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
 
 
                 <button 
-                    className={`mt-40 p-2 rounded-xl font-bold cursor-pointer
-                        ${!validInput ? "bg-gray-300 text-gray-500" : "bg-orange-600 text-white"}`}
+                    className={`mt-40 p-2 rounded-xl font-bold cursor-pointer transition-all duration-200
+                        ${!validInput ? "bg-gray-300 text-gray-500" : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white"}`}
                     onClick={() => handleNextButton()}
                 >
                     Tiếp tục

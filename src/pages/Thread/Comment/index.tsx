@@ -4,6 +4,7 @@ import type { Comment } from "../../../interfaces/interfaces";
 import TimeAgo from 'react-timeago';
 import vietnameseStrings from 'react-timeago/lib/language-strings/vi';
 import buildFormatter from 'react-timeago/lib/formatters/buildFormatter';
+import { useChatContext } from '../../../contexts/ChatContext';
 
 interface CommentProps {
     comment: Comment
@@ -12,8 +13,13 @@ interface CommentProps {
 const Comment: React.FC<CommentProps> = ({ comment }) => {
     const [showChildrenComment, setShowChildrenComment] = useState<boolean>(true);
     const [isReplying, setIsReplying] = useState<boolean>(false);
+    const { openChatWithUser } = useChatContext();
 
     const formatter = buildFormatter(vietnameseStrings);
+
+    const handleChatClick = () => {
+        openChatWithUser(comment.ownerId, comment.ownerName || "testuser");
+    };
 
     return (
         <div className="border-l border-gray-300 pl-4 mt-2 relative">
@@ -62,6 +68,20 @@ const Comment: React.FC<CommentProps> = ({ comment }) => {
                     </button>
                     <p className="cursor-pointer">Chia sẻ</p>
                     <p className="cursor-pointer">Báo cáo</p>
+                    <button 
+                        className="cursor-pointer hover:text-green-600 flex items-center gap-1"
+                        onClick={handleChatClick}
+                        title={`Chat với ${comment.ownerName || "testuser"}`}
+                    >
+                        <svg 
+                            className="w-4 h-4" 
+                            fill="currentColor" 
+                            viewBox="0 0 20 20"
+                        >
+                            <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                        </svg>
+                        Chat
+                    </button>
                 </div>
             </div>
             <div className={`${isReplying ? "" : "hidden"}`}>
@@ -72,7 +92,6 @@ const Comment: React.FC<CommentProps> = ({ comment }) => {
                 />
             </div>
             <div className={`${showChildrenComment ? "" : "hidden"}`}>
-                {/* Children */}
                 {comment.childrenComments.length > 0 && (
                     <div className="ml-10">
                         {comment.childrenComments.map((comment, idx) => (
