@@ -193,7 +193,10 @@ const Header: React.FC = () => {
                         <div className="flex gap-1">
                             <button 
                                 className="rounded-3xl text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white h-8 px-2 cursor-pointer transition-all duration-200" 
-                                onClick={handleLogin}>
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    handleLogin(); 
+                                }}>
                                     Đăng nhập
                             </button>
                             <div ref={optionRef}>
@@ -215,7 +218,7 @@ const Header: React.FC = () => {
                                     >
                                         <button 
                                             className="hover:bg-green-50 cursor-pointer p-2 transition-colors"
-                                            onClick={handleLogin}>
+                                            onClick={(e) => { e.stopPropagation(); handleLogin(); }}>
                                                 Đăng nhập
                                         </button>
                                         <button 

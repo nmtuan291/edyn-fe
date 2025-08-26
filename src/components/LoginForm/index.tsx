@@ -30,7 +30,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
 
         document.addEventListener("click", handleCloseForm);
 
-        return () => removeEventListener("click", handleCloseForm);
+        return () => document.removeEventListener("click", handleCloseForm);
     }, [])
 
     const hanldeOpenRegistrationForm = (event: React.MouseEvent) => {

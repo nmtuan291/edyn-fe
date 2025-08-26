@@ -14,7 +14,8 @@ export interface Thread {
     creatorId: string,
     forumId: string,
     images: string[],
-    upvote: number
+    upvote: number,
+    vote: number
 }
 
 export interface Comment {

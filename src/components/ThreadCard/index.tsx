@@ -5,6 +5,7 @@ import ImageCarousel from "../ImageCarousel";
 import TimeAgo from 'react-timeago';
 import vietnameseStrings from 'react-timeago/lib/language-strings/vi';
 import buildFormatter from 'react-timeago/lib/formatters/buildFormatter';
+import apiSlice from "../../store/api";
 
 interface ThreadCardProps {
     title: string,
@@ -13,13 +14,31 @@ interface ThreadCardProps {
     createdAt: string,
     threadId: string,
     voteCount: number,
-    realm: string
+    realm: string,
+    vote: number
 }
 
-const ThreadCard: React.FC<ThreadCardProps> = ({ title, content, images, createdAt, threadId, voteCount, realm }) => {
+const ThreadCard: React.FC<ThreadCardProps> = ({ 
+    title, 
+    content, 
+    images, 
+    createdAt, 
+    threadId, 
+    voteCount, 
+    realm,
+    vote 
+}) => {
     const navigate = useNavigate();
     const formatter = buildFormatter(vietnameseStrings);
+    const [voteThread] = apiSlice.useVoteThreadMutation();
 
+    const handleVoteThread = async (isDownVote: boolean) => {
+        voteThread({
+            threadId,
+            isDownvote: false 
+        })
+    }
+    
     return (
         <div 
             className="border-t border-gray-300 p-2 cursor-pointer hover:bg-gray-200"
@@ -54,17 +73,33 @@ const ThreadCard: React.FC<ThreadCardProps> = ({ title, content, images, created
             <div className="flex gap-4 mt-3 text-xs font-bold text-gray-500 items-center">
                 <div className="border flex items-center rounded-3xl">
                     <svg
-                        className="w-6 h-6 text-gray-400 hover:text-orange-500 cursor-pointer"
+                        className={`w-6 h-6  hover:text-orange-500 
+                            cursor-pointer ${vote === 1 ? "text-orange-500" : "text-gray-400"}`}
                         fill="currentColor"
-                        viewBox="0 0 20 20"
+                        viewBox="0 0 20 20" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            voteThread({
+                                threadId,
+                                isDownvote: false
+                            })}
+                        }
                     >
                         <polygon points="10,5 5,15 15,15" />
                     </svg>
                     <p>{voteCount}</p>
                     <svg
-                        className="w-6 h-6 text-gray-400 hover:text-blue-500 cursor-pointer"
+                        className={`w-6 h-6 hover:text-blue-500 
+                            cursor-pointer ${vote === -1 ? "text-blue-500" : "text-gray-400"}`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            voteThread({
+                                threadId,
+                                isDownvote: true
+                            })}
+                        }
                     >
                         <polygon points="10,15 5,5 15,5" />
                     </svg>

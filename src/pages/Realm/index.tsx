@@ -36,6 +36,7 @@ const Realm: React.FC = () => {
                             createdAt={thread.createdAt} 
                             voteCount={thread.upvote}
                             realm={name ?? ""}
+                            vote={thread.vote}
                         />)
                     }
                 </div>

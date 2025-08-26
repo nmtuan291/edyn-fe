@@ -13,7 +13,7 @@ const apiSlice = createApi({
             return headers;
         }
      }),
-    tagTypes: ["Realm", "User", "Comment", "Notification", "Conversation"],
+    tagTypes: ["Realm", "User", "Comment", "Notification", "Conversation", "Thread", "ThreadList"],
     endpoints: builder => ({
         getRealm: builder.query({
             query: name => `/forum/${name}`,
@@ -56,6 +56,12 @@ const apiSlice = createApi({
         }),
         getThreads: builder.query({
             query: id => `/forumthread/${id}`,
+            providesTags: (result, error, realmId) => 
+                 result ? [
+                    ...result.map(t => ({ type: "Thread", id: t.id })),
+                    { type: "ThreadList", id: realmId }
+                 ] :
+                 [{ type: "ThreadList", id: realmId}]
         }),
         getThread: builder.query({
             query: id => `/forumthread/thread/${id}`
@@ -98,6 +104,17 @@ const apiSlice = createApi({
                 body
             }),
             invalidatesTags: ["Conversation"]
+        }),
+        // Vote
+        voteThread: builder.mutation({
+            query: body => ({
+                url: "/forumthread/thread/vote",
+                method: "POST",
+                body
+            }),
+            invalidatesTags: (result) =>
+                result ? [{ type: "Thread", id: result.id }] : []
+            
         })
     })
 })

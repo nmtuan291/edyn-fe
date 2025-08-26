@@ -114,7 +114,8 @@ const CreateThread: React.FC = () => {
                 slug: "",
                 upvote: 0,
                 images: imageUrls,
-                pollItems
+                pollItems,
+                vote: 0
             }
 
             await createThread(forumThread).unwrap();
