@@ -1,18 +1,20 @@
 import type { Message } from "@mui/icons-material";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./baseQuery";
 
 const apiSlice = createApi({
     reducerPath: "api",
-    baseQuery: fetchBaseQuery({ 
-        baseUrl: "http://localhost:5057",
-        prepareHeaders: headers => {
-            const token = localStorage.getItem("jwt");
-            if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
-            }
-            return headers;
-        }
-     }),
+    // baseQuery: fetchBaseQuery({ 
+    //     baseUrl: "http://localhost:5057",
+    //     prepareHeaders: headers => {
+    //         const token = localStorage.getItem("jwt");
+    //         if (token) {
+    //             headers.set("Authorization", `Bearer ${token}`);
+    //         }
+    //         return headers;
+    //     }
+    //  }),
+    baseQuery: baseQueryWithReauth,
     tagTypes: ["Realm", "User", "Comment", "Notification", "Conversation", "Thread", "ThreadList"],
     endpoints: builder => ({
         getRealm: builder.query({

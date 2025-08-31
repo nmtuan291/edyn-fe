@@ -46,7 +46,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                 password,
                 isEmail: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)
             }).unwrap();
-            localStorage.setItem("jwt", result.token);
+            localStorage.setItem("jwt", result.accessToken);
+            localStorage.setItem("refreshToken", result.refreshToken)
             onLoginSuccess?.();
             closeForm();
         } catch (error) {

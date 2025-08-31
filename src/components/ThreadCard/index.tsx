@@ -80,7 +80,7 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                         onClick={(e) => {
                             e.stopPropagation();
                             voteThread({
-                                threadId,
+                                id: threadId,
                                 isDownvote: false
                             })}
                         }
@@ -96,7 +96,7 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                         onClick={(e) => {
                             e.stopPropagation();
                             voteThread({
-                                threadId,
+                                id: threadId,
                                 isDownvote: true
                             })}
                         }
