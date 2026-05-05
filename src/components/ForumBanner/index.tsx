@@ -1,0 +1,106 @@
+import testBanner from "./banner.png";
+import testAvatar from "../ThreadCard/avatar_default_0.png"
+import { Edit } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import apiSlice from "../../store/api";
+import { canAccessForumManagement, readRoleFromApi } from "../../interfaces/interfaces";
+
+interface ForumBannerProps {
+    forumId: string,
+    forumName: string,
+    forumBanner: string,
+    forumImage: string
+}
+
+const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImage, forumBanner }) => {
+    const navigate = useNavigate();
+    const { data: forumPerm, refetch: refetchPermissions } = apiSlice.useGetForumPermissionsQuery(forumId, { skip: !forumId });
+    const [joinForum, { isLoading: joinLoading }] = apiSlice.useJoinForumMutation();
+
+    const isForumMember = !!forumPerm;
+    const showManage = canAccessForumManagement(readRoleFromApi(forumPerm));
+
+    const handleJoinRealm = async () => {
+        if (!forumId) return;
+        try {
+            await joinForum(forumId).unwrap();
+            await refetchPermissions();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-2xl border border-surface-200/80 overflow-hidden mb-6">
+            {/* Banner with gradient overlay */}
+            <div className="relative h-36 sm:h-44 group">
+                <img className="w-full h-full object-cover" src={forumBanner || testBanner} alt="" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <button className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-white shadow-sm">
+                    <Edit style={{ fontSize: 16 }} className="text-surface-600" />
+                </button>
+            </div>
+
+            {/* Info section */}
+            <div className="relative px-5 pb-5">
+                {/* Avatar overlapping banner */}
+                <div className="relative -mt-10 mb-3 flex items-end justify-between">
+                    <div className="relative group">
+                        <img 
+                            className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-sm" 
+                            src={forumImage || testAvatar} 
+                            alt="" 
+                        />
+                        <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                            <Edit className="text-white" style={{ fontSize: 18 }} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Name and stats */}
+                <div className="mb-4">
+                    <h1 className="text-xl font-bold text-surface-900">{forumName}</h1>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    {showManage && (
+                        <button
+                            className="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-full transition-colors cursor-pointer"
+                            onClick={() => navigate(`/r/${forumName}/manage`)}
+                        >
+                            Quản lý
+                        </button>
+                    )}
+                    <button
+                        className="px-4 py-2 text-sm font-medium border border-surface-300 text-surface-700 hover:bg-surface-50 rounded-full transition-colors cursor-pointer"
+                        onClick={() => navigate(`/r/${forumName}/create`)}
+                    >
+                        Tạo bài đăng
+                    </button>
+                    <button 
+                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all cursor-pointer
+                            ${isForumMember
+                                ? "border border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100" 
+                                : "bg-brand-600 hover:bg-brand-700 text-white"
+                            }
+                            ${joinLoading ? "opacity-60 pointer-events-none" : ""}`}
+                        disabled={isForumMember || joinLoading}
+                        onClick={() => { if (!isForumMember) void handleJoinRealm(); }}
+                    >
+                        {isForumMember ? "Đã tham gia" : "Tham gia"}
+                    </button>
+                    <button className="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-full transition-colors ml-auto cursor-pointer">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <circle cx="4" cy="10" r="2" />
+                            <circle cx="10" cy="10" r="2" />
+                            <circle cx="16" cy="10" r="2" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default ForumBanner
