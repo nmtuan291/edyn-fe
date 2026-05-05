@@ -9,7 +9,7 @@ import apiSlice from "../../store/api";
 import { type Thread } from "../../interfaces/interfaces";
 import Loader from "../../components/Loader"
 
-const Realm: React.FC = () => {
+const RealmPage: React.FC = () => {
     const { name } = useParams();
     const { useGetRealmQuery } = apiSlice;
     const { data, error, isLoading } = useGetRealmQuery(name);
@@ -70,4 +70,4 @@ const Realm: React.FC = () => {
     )
 }
 
-export default Realm;
+export default RealmPage;

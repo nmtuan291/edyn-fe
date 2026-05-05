@@ -60,7 +60,7 @@ const Header: React.FC = () => {
     const { data: notifications, isLoading, refetch } = apiSlice.useGetNotificationQuery({}, { skip: !isLoggedIn }); 
     const [ updateNotification ] = apiSlice.useUpdateNotificationMutation();
     
-    const handleMessage = useCallback((message: string) => {
+    const handleMessage = useCallback((_message: string) => {
         setNewNoti(true);
         refetch();
     }, [refetch]);
