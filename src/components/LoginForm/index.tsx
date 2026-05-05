@@ -18,7 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
     const [failedLogin, setFailedLogin] = useState<boolean>(false);
     const loginForm = useRef<HTMLDivElement>(null);
 
-    const [login, {isLoading}] = apiSlice.useLoginMutation();
+    const [login] = apiSlice.useLoginMutation();
     const dispatch = useDispatch();
 
     const validInput: boolean = username.length >= 5 && password.length >= 8

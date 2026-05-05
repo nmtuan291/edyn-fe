@@ -117,12 +117,12 @@ export interface Notification {
     isRead?: boolean,
 }
 
-export enum ForumRole {
-    Admin = 0,
-    SuperModerator = 1,
-    Moderator = 2,
-    Member = 3,
-}
+export const ForumRole = {
+    Admin: 0,
+    SuperModerator: 1,
+    Moderator: 2,
+    Member: 3,
+} as const;
 
 /** Read numeric role from API JSON (camelCase or PascalCase). */
 export function readRoleFromApi(obj: unknown): number | undefined {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import ForumBanner from "../../components/ForumBanner"
 import ForumDescription from "../../components/ForumDescription"
 import ThreadCard from "../../components/ThreadCard"
-import type { Realm } from "../../interfaces/interfaces"
+
 import apiSlice from "../../store/api";
 import { type Thread } from "../../interfaces/interfaces";
 import Loader from "../../components/Loader"
@@ -12,7 +12,7 @@ import Loader from "../../components/Loader"
 const RealmPage: React.FC = () => {
     const { name } = useParams();
     const { useGetRealmQuery } = apiSlice;
-    const { data, error, isLoading } = useGetRealmQuery(name);
+    const { data, error, isLoading } = useGetRealmQuery(name ?? "");
     const { data: threads } = apiSlice.useGetThreadsQuery(data?.id, { skip: !data?.id });
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 

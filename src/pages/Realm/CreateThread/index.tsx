@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AttachFile, Image, Poll, Close, Delete } from '@mui/icons-material';
+import { AttachFile, Image, Poll, Delete } from '@mui/icons-material';
 import { createPortal } from 'react-dom';
 import ForumDescription from '../../../components/ForumDescription';
 import TiptapEditor from '../../../components/TiptapEditor';
@@ -23,9 +23,8 @@ const CreateThread: React.FC = () => {
     const [editorContent, setEditorContent] = useState<string>("");
     const [pollItems, setPollItems] = useState<PollType[]>([])
 
-    const [uploadImage] = apiSlice.useUploadImageMutation();
-    const [createThread] = apiSlice.useCreateThreadMutation();
-    const { data, error, isLoading } = apiSlice.useGetRealmQuery(name);
+    const { data } = apiSlice.useGetRealmQuery(name ?? "");
+    const [createThreadMutation] = apiSlice.useCreateThreadMutation();
 
     useEffect(() => {
         const el = document.getElementById("context-panel");
@@ -123,7 +122,7 @@ const CreateThread: React.FC = () => {
                 vote: 0
             }
 
-            await createThread(forumThread).unwrap();
+            await createThreadMutation(forumThread).unwrap();
         } catch (error) {
             console.log(error);
         }

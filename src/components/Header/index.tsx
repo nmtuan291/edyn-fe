@@ -80,11 +80,11 @@ const Header: React.FC = () => {
     }, [isLoading, notifications])
     
     useEffect(() => {
-        const closeOption = (event: MouseEvent) => {
+        const closeOption = (_event: MouseEvent) => {
             setModalState(prev => ({ ...prev, isOptionOpen: false }));
         }
 
-		const closeUserProfile = (event: MouseEvent) => {
+		const closeUserProfile = (_event: MouseEvent) => {
             setModalState(prev => ({ ...prev, isUserOpen: false }));
 		}
 

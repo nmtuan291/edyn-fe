@@ -23,11 +23,11 @@ const ROLE_COLORS: Record<number, string> = {
 };
 
 function memberRoleLabel(role: number): string {
-    return ROLE_LABELS[role as ForumRole] ?? `Vai trò (${role})`;
+    return ROLE_LABELS[role] ?? `Vai trò (${role})`;
 }
 
 function memberRoleBadgeClass(role: number): string {
-    return ROLE_COLORS[role as ForumRole] ?? "bg-surface-100 text-surface-600";
+    return ROLE_COLORS[role] ?? "bg-surface-100 text-surface-600";
 }
 
 function isPlaceholderBirthday(d?: string | null): boolean {

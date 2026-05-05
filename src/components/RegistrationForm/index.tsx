@@ -26,7 +26,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
     const validInput: boolean = true;
     const [stage, setStage] = useState<number>(0);
 
-    const [register, { isLoading: isRegistering }] = apiSlice.useRegisterMutation();
+    const [register] = apiSlice.useRegisterMutation();
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {

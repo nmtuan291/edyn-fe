@@ -1,11 +1,9 @@
-import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import type { RootState } from "../../store";
 import apiSlice from "../../store/api";
 import type { ForumUser } from "../../interfaces/interfaces";
 
 const Sidebar: React.FC = () => {
-    const sidebarOpen = useSelector((state: RootState) => state.ui.sidebarOpen);
+    // sidebarOpen was unused
     const navigate = useNavigate();
     const location = useLocation();
 
