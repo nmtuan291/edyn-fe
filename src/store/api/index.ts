@@ -8,7 +8,7 @@ const apiSlice = createApi({
     endpoints: builder => ({
         // --- Home Feed ---
         getHomeFeed: builder.query({
-            query: ({ page = 1, pageSize = 20 } = {}) => `/feed?page=${page}&pageSize=${pageSize}`,
+            query: ({ page = 1, pageSize = 20 }: { page?: number, pageSize?: number } = {}) => `/feed?page=${page}&pageSize=${pageSize}`,
             providesTags: ["ThreadList"],
         }),
 
@@ -29,7 +29,7 @@ const apiSlice = createApi({
         // --- User Profile ---
         getUserProfile: builder.query({
             query: (accountId: string) => `/users/${accountId}`,
-            providesTags: (result, error, id) => [{ type: "User", id }],
+            providesTags: (_result, _error, id) => [{ type: "User", id }],
         }),
 
         // --- Forum ---
@@ -39,7 +39,7 @@ const apiSlice = createApi({
         }),
         getRealm: builder.query({
             query: (name: string) => `/forum/${name}`,
-            providesTags: (result, error, name) => [{ type: "Realm", id: name }],
+            providesTags: (_result, _error, name) => [{ type: "Realm", id: name }],
         }),
         createForum: builder.mutation({
             query: body => ({ url: "/forum", method: "POST", body }),
@@ -51,7 +51,7 @@ const apiSlice = createApi({
         }),
         getForumPermissions: builder.query({
             query: (forumId: string) => `/forum/${forumId}/permissions`,
-            providesTags: (result, error, forumId) => [{ type: "ForumPermission", id: forumId }],
+            providesTags: (_result, _error, forumId) => [{ type: "ForumPermission", id: forumId }],
         }),
         getJoinedForums: builder.query({
             query: () => "/forum/joined",
@@ -59,7 +59,7 @@ const apiSlice = createApi({
         }),
         getForumMembers: builder.query({
             query: (forumId: string) => `/forum/${forumId}/members`,
-            providesTags: (result, error, forumId) => [{ type: "ForumMembers", id: forumId }],
+            providesTags: (_result, _error, forumId) => [{ type: "ForumMembers", id: forumId }],
         }),
         setMemberRole: builder.mutation({
             query: ({ forumId, targetUserId, role }: { forumId: string, targetUserId: string, role: number }) => ({
@@ -67,14 +67,14 @@ const apiSlice = createApi({
                 method: "PUT",
                 body: { role },
             }),
-            invalidatesTags: (result, error, { forumId }) => [{ type: "ForumMembers", id: forumId }],
+            invalidatesTags: (_result, _error, { forumId }) => [{ type: "ForumMembers", id: forumId }],
         }),
         removeMember: builder.mutation({
             query: ({ forumId, targetUserId }: { forumId: string, targetUserId: string }) => ({
                 url: `/forum/${forumId}/members/${targetUserId}`,
                 method: "DELETE",
             }),
-            invalidatesTags: (result, error, { forumId }) => [{ type: "ForumMembers", id: forumId }],
+            invalidatesTags: (_result, _error, { forumId }) => [{ type: "ForumMembers", id: forumId }],
         }),
 
         // --- Threads ---
@@ -84,7 +84,7 @@ const apiSlice = createApi({
         }),
         getThreads: builder.query({
             query: (id: string) => `/forumthread/${id}`,
-            providesTags: (result, error, realmId) =>
+            providesTags: (result, _error, realmId) =>
                 result
                     ? [...result.map((t: any) => ({ type: "Thread" as const, id: t.id })), { type: "ThreadList", id: realmId }]
                     : [{ type: "ThreadList", id: realmId }],
@@ -134,7 +134,7 @@ const apiSlice = createApi({
         }),
         getMessages: builder.query({
             query: (conversationId: string) => `/chat/conversation/${conversationId}/messages`,
-            providesTags: (result, error, id) => [{ type: "Messages", id }],
+            providesTags: (_result, _error, id) => [{ type: "Messages", id }],
         }),
         sendMessage: builder.mutation({
             query: body => ({ url: "/chat/conversation/add", method: "POST", body }),

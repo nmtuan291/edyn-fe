@@ -21,8 +21,8 @@ const ThreadContent: React.FC = () => {
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
     const { data: realm } = apiSlice.useGetRealmQuery(realmSlug!, { skip: !realmSlug });
-    const { data, error, isLoading } = apiSlice.useGetThreadQuery(id!);
-    const { data: comments, isLoading: commentLoading } = apiSlice.useGetCommentsQuery(id!);
+    const { data, isLoading } = apiSlice.useGetThreadQuery(id!);
+    const { data: comments } = apiSlice.useGetCommentsQuery(id!);
     const { data: creatorProfile } = apiSlice.useGetUserProfileQuery(data?.creatorId!, { skip: !data?.creatorId });
     const [voteThread] = apiSlice.useVoteThreadMutation();
 

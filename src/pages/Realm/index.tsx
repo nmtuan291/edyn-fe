@@ -13,7 +13,7 @@ const RealmPage: React.FC = () => {
     const { name } = useParams();
     const { useGetRealmQuery } = apiSlice;
     const { data, error, isLoading } = useGetRealmQuery(name);
-    const { data: threads, error: threadsError, isLoading: threadLoading } = apiSlice.useGetThreadsQuery(data?.id, { skip: !data?.id });
+    const { data: threads } = apiSlice.useGetThreadsQuery(data?.id, { skip: !data?.id });
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
     useEffect(() => {
