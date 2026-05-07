@@ -1,5 +1,5 @@
 import testBanner from "./banner.png";
-import testAvatar from "../ThreadCard/avatar_default_0.png"
+import Avatar from "../Avatar";
 import { Edit } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import apiSlice from "../../store/api";
@@ -46,10 +46,10 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
                 {/* Avatar overlapping banner */}
                 <div className="relative -mt-10 mb-3 flex items-end justify-between">
                     <div className="relative group">
-                        <img 
-                            className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-sm" 
-                            src={forumImage || testAvatar} 
-                            alt="" 
+                        <Avatar 
+                            src={forumImage}
+                            name={forumName}
+                            className="w-20 h-20 rounded-2xl border-4 border-white shadow-sm" 
                         />
                         <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                             <Edit className="text-white" style={{ fontSize: 18 }} />

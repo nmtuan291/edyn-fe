@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ImageCarousel from "../ImageCarousel";
 import apiSlice from "../../store/api";
 import { timeAgo, formatVoteCount } from "../../utils/timeAgo";
-import defaultAvatar from "../../constants/defaultAvatar";
+import Avatar from "../Avatar";
 
 interface ThreadCardProps {
     title: string,
@@ -36,7 +36,7 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
     const [localUpvote, setLocalUpvote] = useState(voteCount);
 
     const displayRealm = forumName || realm;
-    const avatarSrc = forumImage || defaultAvatar;
+    const avatarSrc = forumImage;
 
     const handleVote = async (e: React.MouseEvent, voteValue: number) => {
         e.stopPropagation();
@@ -60,7 +60,11 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
             <div className="p-4 pb-3">
                 {/* Author row */}
                 <div className="flex items-center gap-2.5 mb-3">
-                    <img className="w-8 h-8 rounded-full object-cover" src={avatarSrc} alt="" />
+                    <Avatar 
+                        className="w-8 h-8" 
+                        src={avatarSrc}
+                        name={displayRealm}
+                    />
                     <div className="flex items-center gap-1.5 text-sm min-w-0">
                         <span className="font-semibold text-surface-900 truncate">{displayRealm}</span>
                         <span className="text-surface-400">·</span>

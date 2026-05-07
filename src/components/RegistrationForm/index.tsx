@@ -39,7 +39,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
 
         document.addEventListener("click", handleCloseForm);
 
-        return () => removeEventListener("click", handleCloseForm);
+        return () => document.removeEventListener("click", handleCloseForm);
     }, [])
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -104,9 +104,11 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
                 ref={registrationForm}
             >
                 {/* Header */}
-                <div className="p-6 pb-0 text-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white text-2xl">🌱</span>
+                <div className="p-8 pb-0 text-center">
+                    <div className="mb-6">
+                        <span className="font-logo font-extrabold text-3xl tracking-tight bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
+                            edyn
+                        </span>
                     </div>
                     <h1 className="text-2xl font-bold text-surface-900 mb-1">Đăng ký</h1>
                     {/* Progress indicator */}

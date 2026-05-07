@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import LoginForm from "../LoginForm";
 import RegistrationForm from "../RegistrationForm";
+import Avatar from "../Avatar";
 import Loader from "../Loader";
 import { Notifications, Person, Logout, Settings, Add } from "@mui/icons-material";
-import defaultAvatar from "../../constants/defaultAvatar";
 import MobileSidebar from "../MobileSidebar/MobileSidebar";
 import { useNavigate } from "react-router-dom";
 import CreateForum from "../CreateForum";
@@ -35,7 +35,7 @@ const Header: React.FC = () => {
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user);
     const { data: headerProfile } = apiSlice.useGetUserProfileQuery(user.id, { skip: !isLoggedIn || !user.id });
-    const headerAvatarSrc = headerProfile?.avatar || defaultAvatar;
+    const headerAvatarSrc = headerProfile?.avatar;
 
     useEffect(() => {
         const token = localStorage.getItem("jwt");
@@ -172,12 +172,9 @@ const Header: React.FC = () => {
                             </svg>
                         </button>
                         
-                        <div className="flex items-center cursor-pointer gap-2" onClick={() => navigate("/")}>
-                            <div className="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-sm">
-                                <span className="text-white text-lg">🌱</span>
-                            </div>
-                            <span className="font-bold text-xl text-surface-900 hidden sm:block">
-                                Edyn
+                        <div className="flex items-center cursor-pointer group" onClick={() => navigate("/")}>
+                            <span className="font-logo font-extrabold text-2xl tracking-tight bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent group-hover:from-brand-500 group-hover:to-brand-300 transition-all duration-300">
+                                edyn
                             </span>
                         </div>
                     </div>
@@ -202,7 +199,10 @@ const Header: React.FC = () => {
                             <div className="flex gap-2 items-center">
                                 <button 
                                     className="text-sm font-medium text-surface-600 hover:text-surface-900 px-3 py-2 rounded-lg hover:bg-surface-100 transition-colors cursor-pointer"
-                                    onClick={() => setModalState(prev => ({ ...prev, showRegistrationForm: true }))}>
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModalState(prev => ({ ...prev, showRegistrationForm: true }));
+                                    }}>
                                     Đăng ký
                                 </button>
                                 <button 
@@ -277,10 +277,10 @@ const Header: React.FC = () => {
                                             setModalState(prev => ({ ...prev, isUserOpen: true }));
                                         }}
                                     >
-                                        <img 
-                                            className="w-8 h-8 rounded-full object-cover" 
+                                        <Avatar 
+                                            className="w-8 h-8" 
                                             src={headerAvatarSrc}
-                                            alt="Avatar"
+                                            name={user.userName || "User"}
                                         />
                                         <div className="w-2.5 h-2.5 rounded-full absolute bottom-0 right-0 bg-success border-2 border-white" />
                                     </button>

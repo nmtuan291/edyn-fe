@@ -41,10 +41,9 @@ const MobileSidebar: React.FC = () => {
         <div className="h-full bg-white pt-16">
             <div className="px-4 py-2">
                 <div className="flex items-center gap-2 mb-6">
-                    <div className="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center">
-                        <span className="text-white text-lg">🌱</span>
-                    </div>
-                    <span className="font-bold text-xl text-surface-900">Edyn</span>
+                    <span className="font-logo font-extrabold text-2xl tracking-tight bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
+                        edyn
+                    </span>
                 </div>
             </div>
             <nav className="flex flex-col gap-0.5 px-2">

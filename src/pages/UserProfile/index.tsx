@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import apiSlice from "../../store/api";
 import Loader from "../../components/Loader";
-import defaultAvatar from "../../constants/defaultAvatar";
+import Avatar from "../../components/Avatar";
 
 const UserProfile: React.FC = () => {
     const { username } = useParams();
@@ -38,13 +38,17 @@ const UserProfile: React.FC = () => {
     }
 
     const displayName = profile.userName || "—";
-    const avatarSrc = profile.avatar?.trim() ? profile.avatar : defaultAvatar;
+    const avatarSrc = profile.avatar?.trim() ? profile.avatar : null;
 
     return (
         <div>
             <div className="bg-white rounded-2xl border border-surface-200/80 p-6 mb-6">
                 <div className="flex items-center gap-4">
-                    <img src={avatarSrc} className="w-20 h-20 rounded-2xl object-cover" alt="" />
+                    <Avatar 
+                        src={avatarSrc} 
+                        name={displayName}
+                        className="w-20 h-20 rounded-2xl" 
+                    />
                     <div>
                         <h1 className="font-bold text-xl text-surface-900">{displayName}</h1>
                         <p className="text-sm text-surface-400">@{displayName}</p>

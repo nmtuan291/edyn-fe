@@ -6,7 +6,7 @@ import Loader from "../../components/Loader";
 import type { ForumMember } from "../../interfaces/interfaces";
 import { ForumRole, canAccessForumManagement, readRoleFromApi } from "../../interfaces/interfaces";
 import type { RootState } from "../../store";
-import defaultAvatar from "../../constants/defaultAvatar";
+import Avatar from "../../components/Avatar";
 
 const ROLE_LABELS: Record<number, string> = {
     [ForumRole.Admin]: "Admin",
@@ -184,10 +184,10 @@ const RealmManagement: React.FC = () => {
                 return (
                     <div key={member.id} className="flex flex-col gap-2 px-5 py-4 hover:bg-surface-50 transition-colors sm:flex-row sm:items-center sm:gap-3">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
-                            <img
-                                src={member.avatar?.trim() ? member.avatar : defaultAvatar}
-                                className="w-10 h-10 rounded-full object-cover shrink-0"
-                                alt=""
+                            <Avatar 
+                                src={member.avatar?.trim() ? member.avatar : null}
+                                name={member.username}
+                                className="w-10 h-10"
                             />
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-semibold text-surface-900 truncate">{member.username}</p>
@@ -288,7 +288,11 @@ const RealmManagement: React.FC = () => {
     return (
         <div>
             <div className="flex items-center gap-3 mb-6">
-                <img src={realmData?.forumImage || defaultAvatar} className="w-10 h-10 rounded-xl object-cover" alt="" />
+                <Avatar 
+                    src={realmData?.forumImage}
+                    name={realmData?.name}
+                    className="w-10 h-10 rounded-xl"
+                />
                 <div>
                     <h1 className="text-xl font-bold text-surface-900">Quản lý {realmData?.name}</h1>
                     <p className="text-xs text-surface-400">Quản lý thành viên và quyền hạn</p>

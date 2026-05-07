@@ -9,7 +9,7 @@ import CommentEditor from "../Comment/CommentEditor";
 import Comment from "../Comment";
 import type { Comment as CommentType } from "../../../interfaces/interfaces";
 import { timeAgo, formatVoteCount } from "../../../utils/timeAgo";
-import defaultAvatar from "../../../constants/defaultAvatar";
+import Avatar from "../../../components/Avatar";
 
 const ThreadContent: React.FC = () => {
     const [isOptionOpen, setIsOptionOpen] = useState<boolean>(false);
@@ -82,10 +82,10 @@ const ThreadContent: React.FC = () => {
                     {/* Author header */}
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <img
-                                src={creatorAvatar || defaultAvatar}
-                                className="w-10 h-10 rounded-full object-cover"
-                                alt=""
+                            <Avatar 
+                                src={creatorAvatar}
+                                name={creatorName}
+                                className="w-10 h-10"
                             />
                             <div>
                                 <div className="flex items-center gap-2 text-sm">
