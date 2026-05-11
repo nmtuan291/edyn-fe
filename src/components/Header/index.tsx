@@ -22,7 +22,6 @@ const Header: React.FC = () => {
         showCreateForum: false,
         isUserOpen: false,
     });
-    const [newNoti, setNewNoti] = useState<boolean>(false);
     const [showNoti, setShowNoti] = useState<boolean>(false);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
@@ -63,7 +62,6 @@ const Header: React.FC = () => {
         method: "ReceiveNotification"
     });
     const { data: notifications, isLoading, refetch } = apiSlice.useGetNotificationQuery({}, { skip: !isLoggedIn }); 
-    const [ updateNotification ] = apiSlice.useUpdateNotificationMutation();
     const [ markAllRead ] = apiSlice.useMarkAllNotificationsReadMutation();
     const { data: unreadData } = apiSlice.useGetUnreadNotificationCountQuery(undefined, { skip: !isLoggedIn });
     const [logoutMutation] = apiSlice.useLogoutMutation();
@@ -71,7 +69,6 @@ const Header: React.FC = () => {
     const [searchThreadsQuery] = apiSlice.useLazySearchThreadsQuery();
     
     const handleMessage = useCallback((_message: string) => {
-        setNewNoti(true);
         refetch();
     }, [refetch]);
     
@@ -85,7 +82,6 @@ const Header: React.FC = () => {
     useEffect(() => {
         if (!isLoading && notifications)
             if (notifications.length > 0 && !notifications[notifications.length - 1].isRead) {
-                setNewNoti(true);
             }
     }, [isLoading, notifications])
     
@@ -124,7 +120,6 @@ const Header: React.FC = () => {
         if (notifications && notifications.length > 0) {
             const hasUnread = notifications.some((n: any) => !n.isRead);
             if (hasUnread) {
-                setNewNoti(false);
                 try {
                     await markAllRead({}).unwrap();
                 } catch (error) {

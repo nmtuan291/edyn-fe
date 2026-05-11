@@ -143,43 +143,47 @@ export const ForumRole = {
     Member: 3,
 } as const;
 
-export enum ForumPermissionType {
-    None             = 0,
-    ManageForumInfo  = 1,
-    ManageRoles      = 2,
-    DeleteForum      = 4,
-    PinThread        = 8,
-    LockThread       = 16,
-    DeleteThread     = 32,
-    EditAnyThread    = 64,
-    DeleteComment    = 128,
-    EditAnyComment   = 256,
-    BanMember        = 512,
-    ManageTags       = 1024,
-    CreateThread     = 2048,
-    CreateComment    = 4096,
-    Vote             = 8192,
-    All              = 16383,
-}
+export const ForumPermissionType = {
+    None: 0,
+    ManageForumInfo: 1,
+    ManageRoles: 2,
+    DeleteForum: 4,
+    PinThread: 8,
+    LockThread: 16,
+    DeleteThread: 32,
+    EditAnyThread: 64,
+    DeleteComment: 128,
+    EditAnyComment: 256,
+    BanMember: 512,
+    ManageTags: 1024,
+    CreateThread: 2048,
+    CreateComment: 4096,
+    Vote: 8192,
+    All: 16383,
+} as const;
+export type ForumPermissionType = (typeof ForumPermissionType)[keyof typeof ForumPermissionType];
 
-export enum SortBy {
-    Latest = 0,
-    Hot = 1,
-    Top = 2,
-}
+export const SortBy = {
+    Latest: 0,
+    Hot: 1,
+    Top: 2,
+} as const;
+export type SortBy = (typeof SortBy)[keyof typeof SortBy];
 
-export enum SortDate {
-    Day = 0,
-    Month = 1,
-    Year = 2,
-    All = 3,
-}
+export const SortDate = {
+    Day: 0,
+    Month: 1,
+    Year: 2,
+    All: 3,
+} as const;
+export type SortDate = (typeof SortDate)[keyof typeof SortDate];
 
-export enum VoteStatus {
-    UpVote = 1,
-    DownVote = -1,
-    NoVote = 0,
-}
+export const VoteStatus = {
+    UpVote: 1,
+    DownVote: -1,
+    NoVote: 0,
+} as const;
+export type VoteStatus = (typeof VoteStatus)[keyof typeof VoteStatus];
 
 // ---- Helpers ----
 
