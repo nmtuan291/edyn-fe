@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ThreadCard from "../../components/ThreadCard";
 import apiSlice from "../../store/api";
 import { type Thread } from "../../interfaces/interfaces";
