@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import ForumDescription from "../../../components/ForumDescription";
 import apiSlice from "../../../store/api";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store";
 import Loader from "../../../components/Loader";
 import ImageCarousel from "../../../components/ImageCarousel";
 import CommentEditor from "../Comment/CommentEditor";
@@ -15,9 +17,14 @@ const ThreadContent: React.FC = () => {
     const [isOptionOpen, setIsOptionOpen] = useState<boolean>(false);
     const [localVote, setLocalVote] = useState<number | null>(null);
     const [localUpvote, setLocalUpvote] = useState<number | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState("");
+    const [editContent, setEditContent] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const optionRef = useRef<HTMLDivElement>(null);
     const { id, name: realmSlug } = useParams();
     const navigate = useNavigate();
+    const currentUser = useSelector((state: RootState) => state.user);
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
     const { data: realm } = apiSlice.useGetRealmQuery(realmSlug!, { skip: !realmSlug });
@@ -25,7 +32,10 @@ const ThreadContent: React.FC = () => {
     const { data: comments } = apiSlice.useGetCommentsQuery(id!);
     const { data: creatorProfile } = apiSlice.useGetUserProfileQuery(data?.creatorId!, { skip: !data?.creatorId });
     const [voteThread] = apiSlice.useVoteThreadMutation();
+    const [editThread] = apiSlice.useEditThreadMutation();
+    const [deleteThread] = apiSlice.useDeleteThreadMutation();
 
+    const isOwner = currentUser.id && data?.creatorId === currentUser.id;
     const currentVote = localVote ?? data?.vote ?? 0;
     const currentUpvote = localUpvote ?? data?.upvote ?? 0;
 
@@ -70,6 +80,38 @@ const ThreadContent: React.FC = () => {
         }
     };
 
+    const handleStartEdit = () => {
+        if (!data) return;
+        setEditTitle(data.title);
+        setEditContent(data.content);
+        setIsEditing(true);
+        setIsOptionOpen(false);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!data) return;
+        try {
+            await editThread({
+                threadId: data.id,
+                title: editTitle !== data.title ? editTitle : undefined,
+                content: editContent !== data.content ? editContent : undefined,
+            }).unwrap();
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Failed to edit thread:", error);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!data) return;
+        try {
+            await deleteThread(data.id).unwrap();
+            navigate(`/r/${realmSlug}`);
+        } catch (error) {
+            console.error("Failed to delete thread:", error);
+        }
+    };
+
     if (isLoading)
         return <Loader />
 
@@ -92,6 +134,12 @@ const ThreadContent: React.FC = () => {
                                     <span className="font-semibold text-surface-900">{creatorName}</span>
                                     <span className="text-surface-400">·</span>
                                     <span className="text-surface-400">{timeAgo(data?.createdAt)}</span>
+                                    {data?.lastUpdatedAt && (
+                                        <>
+                                            <span className="text-surface-400">·</span>
+                                            <span className="text-xs text-surface-400 italic">đã chỉnh sửa</span>
+                                        </>
+                                    )}
                                 </div>
                                 {data?.forumName && (
                                     <p
@@ -115,23 +163,122 @@ const ThreadContent: React.FC = () => {
                                 </svg>
                             </button>
                             <div className={`absolute right-0 top-full mt-1 bg-white rounded-xl shadow-dropdown border border-surface-200 w-40 overflow-hidden z-10 ${!isOptionOpen ? "hidden" : ""}`}>
-                                <button className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer">Lưu</button>
+                                {isOwner && (
+                                    <>
+                                        <button
+                                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer"
+                                            onClick={handleStartEdit}
+                                        >
+                                            Chỉnh sửa
+                                        </button>
+                                        <button
+                                            className="w-full text-left px-4 py-2.5 text-sm text-danger hover:bg-red-50 transition-colors cursor-pointer border-t border-surface-100"
+                                            onClick={() => { setShowDeleteConfirm(true); setIsOptionOpen(false); }}
+                                        >
+                                            Xóa bài đăng
+                                        </button>
+                                    </>
+                                )}
+                                <button className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer border-t border-surface-100">Lưu</button>
                                 <button className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer border-t border-surface-100">Ẩn</button>
                                 <button className="w-full text-left px-4 py-2.5 text-sm text-danger hover:bg-red-50 transition-colors cursor-pointer border-t border-surface-100">Báo cáo</button>
                             </div>
                         </div>
                     </div>
 
+                    {/* Tags */}
+                    {data?.tags && data.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                            {data.tags.map((tag: any) => (
+                                <span
+                                    key={tag.id}
+                                    className="px-2 py-0.5 text-[10px] font-medium rounded-full"
+                                    style={{
+                                        backgroundColor: tag.color ? `${tag.color}18` : '#f3f4f6',
+                                        color: tag.color || '#6b7280',
+                                        border: `1px solid ${tag.color ? `${tag.color}30` : '#e5e7eb'}`,
+                                    }}
+                                >
+                                    {tag.name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
                     {/* Title */}
-                    <h1 className="text-xl font-bold text-surface-900 mb-3">{data?.title}</h1>
+                    {isEditing ? (
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-lg font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                            />
+                        </div>
+                    ) : (
+                        <h1 className="text-xl font-bold text-surface-900 mb-3 flex items-center gap-2">
+                            {data?.isPinned && (
+                                <svg className="w-5 h-5 text-brand-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.707 2.293a1 1 0 0 0-1.414 0l-7 7a1 1 0 0 0 1.414 1.414L4 10.414V17a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-6.586l.293.293a1 1 0 0 0 1.414-1.414l-7-7Z" />
+                                </svg>
+                            )}
+                            {data?.title}
+                        </h1>
+                    )}
 
                     {/* Body */}
-                    <div className="text-sm text-surface-700 leading-relaxed mb-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: data?.content }} />
+                    {isEditing ? (
+                        <div className="mb-4">
+                            <textarea
+                                className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm min-h-[120px] focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                            />
+                            <div className="flex gap-2 mt-3">
+                                <button
+                                    className="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-full transition-colors cursor-pointer"
+                                    onClick={handleSaveEdit}
+                                >
+                                    Lưu thay đổi
+                                </button>
+                                <button
+                                    className="px-4 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 rounded-full transition-colors cursor-pointer"
+                                    onClick={() => setIsEditing(false)}
+                                >
+                                    Hủy
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-sm text-surface-700 leading-relaxed mb-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: data?.content }} />
+                    )}
                     
                     {/* Images */}
                     {data?.images && data.images.length > 0 && (
                         <div className="rounded-xl overflow-hidden mb-4">
                             <ImageCarousel images={data.images} />
+                        </div>
+                    )}
+
+                    {/* Poll items */}
+                    {data?.pollItems && data.pollItems.length > 0 && (
+                        <div className="mb-4 space-y-2">
+                            {data.pollItems.map((item: any, idx: number) => {
+                                const totalVotes = data.pollItems.reduce((sum: number, p: any) => sum + (p.voteCount ?? 0), 0);
+                                const pct = totalVotes > 0 ? Math.round((item.voteCount / totalVotes) * 100) : 0;
+                                return (
+                                    <div key={idx} className="relative bg-surface-50 rounded-xl overflow-hidden border border-surface-200">
+                                        <div
+                                            className="absolute inset-y-0 left-0 bg-brand-100/60 transition-all"
+                                            style={{ width: `${pct}%` }}
+                                        />
+                                        <div className="relative px-4 py-2.5 flex items-center justify-between">
+                                            <span className="text-sm font-medium text-surface-700">{item.pollContent}</span>
+                                            <span className="text-xs font-bold text-surface-500">{pct}% ({item.voteCount})</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
@@ -176,6 +323,30 @@ const ThreadContent: React.FC = () => {
                     </div>
                 </div>
             </article>
+
+            {/* Delete confirmation modal */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl shadow-modal w-full max-w-sm mx-4 p-6">
+                        <h3 className="text-lg font-bold text-surface-900 mb-2">Xóa bài đăng?</h3>
+                        <p className="text-sm text-surface-500 mb-5">Bạn có chắc chắn muốn xóa bài đăng này? Hành động này không thể hoàn tác.</p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                className="px-4 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 rounded-full transition-colors cursor-pointer"
+                                onClick={() => setShowDeleteConfirm(false)}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className="px-4 py-2 text-sm font-medium bg-danger hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
+                                onClick={handleDelete}
+                            >
+                                Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Comment editor */}
             <div className="mt-4">

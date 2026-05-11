@@ -15,7 +15,7 @@ export interface Thread {
     creatorId: string,
     title: string,
     isPinned?: boolean,
-    tags?: any[],
+    tags?: ForumTag[],
     pollItems?: PollItem[],
     images: string[],
     content: string,
@@ -28,9 +28,26 @@ export interface Thread {
     forumImage?: string,
 }
 
+export interface PagedResult<T> {
+    items: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+}
+
 export interface PollItem {
     pollContent: string,
     voteCount: number,
+}
+
+export interface ForumTag {
+    id: number,
+    forumId?: string,
+    name: string,
+    color: string,
 }
 
 export interface Comment {
@@ -117,12 +134,59 @@ export interface Notification {
     isRead?: boolean,
 }
 
+// ---- Enums ----
+
 export const ForumRole = {
     Admin: 0,
     SuperModerator: 1,
     Moderator: 2,
     Member: 3,
 } as const;
+
+export enum ForumPermissionType {
+    None             = 0,
+    ManageForumInfo  = 1,
+    ManageRoles      = 2,
+    DeleteForum      = 4,
+    PinThread        = 8,
+    LockThread       = 16,
+    DeleteThread     = 32,
+    EditAnyThread    = 64,
+    DeleteComment    = 128,
+    EditAnyComment   = 256,
+    BanMember        = 512,
+    ManageTags       = 1024,
+    CreateThread     = 2048,
+    CreateComment    = 4096,
+    Vote             = 8192,
+    All              = 16383,
+}
+
+export enum SortBy {
+    Latest = 0,
+    Hot = 1,
+    Top = 2,
+}
+
+export enum SortDate {
+    Day = 0,
+    Month = 1,
+    Year = 2,
+    All = 3,
+}
+
+export enum VoteStatus {
+    UpVote = 1,
+    DownVote = -1,
+    NoVote = 0,
+}
+
+// ---- Helpers ----
+
+/** Check if a user has a specific permission using bitwise flags. */
+export function hasPermission(effectivePermissions: number, permission: ForumPermissionType): boolean {
+    return (effectivePermissions & permission) === permission;
+}
 
 /** Read numeric role from API JSON (camelCase or PascalCase). */
 export function readRoleFromApi(obj: unknown): number | undefined {

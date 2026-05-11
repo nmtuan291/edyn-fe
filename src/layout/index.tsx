@@ -10,14 +10,23 @@ const Layout: React.FC = () => {
         <ChatProvider>
             <div className="min-h-screen bg-surface-50">
                 <Header />
-                <div className="flex w-full pt-16">
-                    <aside className="hidden lg:flex w-[72px] shrink-0 flex-col items-center sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pl-2 pr-0 sm:pl-3">
-                        <Sidebar />
-                    </aside>
-                    <main className="flex-1 min-w-0 max-w-2xl mx-auto px-4 py-6">
+                <div className="flex w-full pt-16 px-4 sm:px-6 md:px-8">
+                    {/* Left Slot - forces centering of main content */}
+                    <div className="flex-1 hidden lg:flex justify-start">
+                        <aside className="w-[72px] sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto flex flex-col items-center">
+                            <Sidebar />
+                        </aside>
+                    </div>
+
+                    {/* Center Slot - truly centered in the viewport */}
+                    <main className="shrink-0 w-full max-w-2xl py-6">
                         <Outlet />
                     </main>
-                    <div id="context-panel" className="hidden xl:block w-80 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pl-4 pr-2 py-6 sm:pr-3" />
+
+                    {/* Right Slot - balances the left side for perfect centering */}
+                    <div className="flex-1 hidden lg:flex justify-end">
+                        <div id="context-panel" className="hidden xl:block w-80 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto py-6" />
+                    </div>
                 </div>
                 <ChatWidget />
             </div>

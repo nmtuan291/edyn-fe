@@ -352,16 +352,125 @@ const RealmManagement: React.FC = () => {
             )}
 
             {currentTab === "settings" && (
-                <div className="bg-white rounded-2xl border border-surface-200/80 p-8 text-center">
-                    <svg className="w-12 h-12 mx-auto mb-3 text-surface-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                    <p className="text-sm text-surface-500">Cài đặt cộng đồng sẽ được hiển thị ở đây</p>
+                <div className="space-y-6">
+                    {/* Forum Info Section */}
+                    <div className="bg-white rounded-2xl border border-surface-200/80 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-surface-100">
+                            <h3 className="font-bold text-surface-900">Thông tin cộng đồng</h3>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-surface-700 mb-2">Tên hiển thị</label>
+                                <input 
+                                    type="text" 
+                                    defaultValue={realmData?.name}
+                                    className="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-surface-700 mb-2">Mô tả</label>
+                                <textarea 
+                                    defaultValue={realmData?.description}
+                                    className="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all"
+                                />
+                            </div>
+                            <button className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-full transition-all">
+                                Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Tag Management Section */}
+                    <TagManagement forumId={forumId!} />
                 </div>
             )}
         </div>
     );
 };
+
+interface TagManagementProps {
+    forumId: string;
+}
+
+const TagManagement: React.FC<TagManagementProps> = ({ forumId }) => {
+    const { data: tags, isLoading } = apiSlice.useGetForumTagsQuery(forumId);
+    const [createTag, { isLoading: isCreating }] = apiSlice.useCreateForumTagMutation();
+    const [newTagName, setNewTagName] = useState("");
+    const [newTagColor, setNewTagColor] = useState("#6366f1");
+
+    const handleCreateTag = async () => {
+        if (!newTagName.trim()) return;
+        try {
+            await createTag({ forumId, name: newTagName, color: newTagColor }).unwrap();
+            setNewTagName("");
+        } catch (error) {
+            console.error("Failed to create tag:", error);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-2xl border border-surface-200/80 overflow-hidden">
+            <div className="px-6 py-4 border-b border-surface-100">
+                <h3 className="font-bold text-surface-900">Quản lý Thẻ (Tags)</h3>
+            </div>
+            <div className="p-6">
+                <div className="flex items-end gap-3 mb-6">
+                    <div className="flex-1">
+                        <label className="block text-sm font-semibold text-surface-700 mb-2">Tên thẻ mới</label>
+                        <input 
+                            type="text" 
+                            value={newTagName}
+                            onChange={(e) => setNewTagName(e.target.value)}
+                            className="w-full px-4 py-2 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-all"
+                            placeholder="Ví dụ: Thảo luận, Hỏi đáp..."
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-surface-700 mb-2">Màu sắc</label>
+                        <input 
+                            type="color" 
+                            value={newTagColor}
+                            onChange={(e) => setNewTagColor(e.target.value)}
+                            className="h-9 w-16 p-1 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer"
+                        />
+                    </div>
+                    <button 
+                        onClick={handleCreateTag}
+                        disabled={isCreating || !newTagName.trim()}
+                        className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-full transition-all disabled:opacity-50 h-9"
+                    >
+                        Thêm thẻ
+                    </button>
+                </div>
+
+                {isLoading ? (
+                    <div className="flex justify-center py-4">
+                        <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                ) : (
+                    <div className="flex flex-wrap gap-2">
+                        {tags?.map((tag: any) => (
+                            <div 
+                                key={tag.id}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-surface-200"
+                                style={{ backgroundColor: `${tag.color}10`, color: tag.color, borderColor: `${tag.color}30` }}
+                            >
+                                <span className="text-sm font-medium">{tag.name}</span>
+                                <button className="hover:text-danger transition-colors cursor-pointer">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        ))}
+                        {tags?.length === 0 && (
+                            <p className="text-sm text-surface-400">Chưa có thẻ nào được tạo.</p>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
 export default RealmManagement;

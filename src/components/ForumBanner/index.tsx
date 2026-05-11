@@ -1,9 +1,10 @@
 import testBanner from "./banner.png";
 import Avatar from "../Avatar";
-import { Edit } from "@mui/icons-material";
+import { Edit, ExitToApp } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import apiSlice from "../../store/api";
 import { canAccessForumManagement, readRoleFromApi } from "../../interfaces/interfaces";
+import { useState } from "react";
 
 interface ForumBannerProps {
     forumId: string,
@@ -14,8 +15,10 @@ interface ForumBannerProps {
 
 const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImage, forumBanner }) => {
     const navigate = useNavigate();
+    const [isHoveringJoined, setIsHoveringJoined] = useState(false);
     const { data: forumPerm, refetch: refetchPermissions } = apiSlice.useGetForumPermissionsQuery(forumId, { skip: !forumId });
     const [joinForum, { isLoading: joinLoading }] = apiSlice.useJoinForumMutation();
+    const [leaveForum, { isLoading: leaveLoading }] = apiSlice.useLeaveForumMutation();
 
     const isForumMember = !!forumPerm;
     const showManage = canAccessForumManagement(readRoleFromApi(forumPerm));
@@ -26,7 +29,18 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
             await joinForum(forumId).unwrap();
             await refetchPermissions();
         } catch (error) {
-            console.log(error);
+            console.error("Join failed:", error);
+        }
+    };
+
+    const handleLeaveRealm = async () => {
+        if (!forumId) return;
+        if (!window.confirm(`Bạn có chắc chắn muốn rời khỏi cộng đồng ${forumName}?`)) return;
+        try {
+            await leaveForum(forumId).unwrap();
+            await refetchPermissions();
+        } catch (error) {
+            console.error("Leave failed:", error);
         }
     };
 
@@ -36,9 +50,11 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
             <div className="relative h-36 sm:h-44 group">
                 <img className="w-full h-full object-cover" src={forumBanner || testBanner} alt="" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <button className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-white shadow-sm">
-                    <Edit style={{ fontSize: 16 }} className="text-surface-600" />
-                </button>
+                {showManage && (
+                    <button className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-white shadow-sm">
+                        <Edit style={{ fontSize: 16 }} className="text-surface-600" />
+                    </button>
+                )}
             </div>
 
             {/* Info section */}
@@ -51,9 +67,11 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
                             name={forumName}
                             className="w-20 h-20 rounded-2xl border-4 border-white shadow-sm" 
                         />
-                        <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                            <Edit className="text-white" style={{ fontSize: 18 }} />
-                        </div>
+                        {showManage && (
+                            <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                <Edit className="text-white" style={{ fontSize: 18 }} />
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -79,16 +97,27 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
                         Tạo bài đăng
                     </button>
                     <button 
-                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all cursor-pointer
+                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all cursor-pointer flex items-center gap-1.5
                             ${isForumMember
-                                ? "border border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100" 
+                                ? isHoveringJoined 
+                                    ? "border border-danger text-danger bg-red-50" 
+                                    : "border border-brand-300 text-brand-700 bg-brand-50" 
                                 : "bg-brand-600 hover:bg-brand-700 text-white"
                             }
-                            ${joinLoading ? "opacity-60 pointer-events-none" : ""}`}
-                        disabled={isForumMember || joinLoading}
-                        onClick={() => { if (!isForumMember) void handleJoinRealm(); }}
+                            ${(joinLoading || leaveLoading) ? "opacity-60 pointer-events-none" : ""}`}
+                        disabled={joinLoading || leaveLoading}
+                        onMouseEnter={() => setIsHoveringJoined(true)}
+                        onMouseLeave={() => setIsHoveringJoined(false)}
+                        onClick={() => { 
+                            if (isForumMember) void handleLeaveRealm(); 
+                            else void handleJoinRealm(); 
+                        }}
                     >
-                        {isForumMember ? "Đã tham gia" : "Tham gia"}
+                        {isForumMember ? (
+                            isHoveringJoined ? (
+                                <><ExitToApp style={{ fontSize: 16 }} /> Rời khỏi</>
+                            ) : "Đã tham gia"
+                        ) : "Tham gia"}
                     </button>
                     <button className="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-full transition-colors ml-auto cursor-pointer">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -103,4 +132,4 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
     )
 }
 
-export default ForumBanner
+export default ForumBanner;

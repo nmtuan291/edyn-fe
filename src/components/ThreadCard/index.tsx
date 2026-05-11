@@ -4,6 +4,7 @@ import ImageCarousel from "../ImageCarousel";
 import apiSlice from "../../store/api";
 import { timeAgo, formatVoteCount } from "../../utils/timeAgo";
 import Avatar from "../Avatar";
+import type { ForumTag } from "../../interfaces/interfaces";
 
 interface ThreadCardProps {
     title: string,
@@ -16,6 +17,8 @@ interface ThreadCardProps {
     vote: number,
     forumName?: string,
     forumImage?: string,
+    tags?: ForumTag[],
+    isPinned?: boolean,
 }
 
 const ThreadCard: React.FC<ThreadCardProps> = ({ 
@@ -29,6 +32,8 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
     vote,
     forumName,
     forumImage,
+    tags,
+    isPinned,
 }) => {
     const navigate = useNavigate();
     const [voteThread] = apiSlice.useVoteThreadMutation();
@@ -80,8 +85,34 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                     </span>
                 </div>
 
+                {/* Tags */}
+                {tags && tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                        {tags.map(tag => (
+                            <span
+                                key={tag.id}
+                                className="px-2 py-0.5 text-[10px] font-medium rounded-full"
+                                style={{
+                                    backgroundColor: tag.color ? `${tag.color}18` : '#f3f4f6',
+                                    color: tag.color || '#6b7280',
+                                    border: `1px solid ${tag.color ? `${tag.color}30` : '#e5e7eb'}`,
+                                }}
+                            >
+                                {tag.name}
+                            </span>
+                        ))}
+                    </div>
+                )}
+
                 {/* Title */}
-                <h3 className="font-semibold text-surface-900 text-base leading-snug mb-1.5">{title}</h3>
+                <h3 className="font-semibold text-surface-900 text-base leading-snug mb-1.5 flex items-center gap-1.5">
+                    {isPinned && (
+                        <svg className="w-4 h-4 text-brand-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 0 0-1.414 0l-7 7a1 1 0 0 0 1.414 1.414L4 10.414V17a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-6.586l.293.293a1 1 0 0 0 1.414-1.414l-7-7Z" />
+                        </svg>
+                    )}
+                    {title}
+                </h3>
 
                 {/* Body excerpt */}
                 <div 

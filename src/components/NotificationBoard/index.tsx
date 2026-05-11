@@ -1,10 +1,14 @@
 import React from "react";
+import apiSlice from "../../store/api";
 
 interface NotificationBoardProps {
     notifications: any[]
 }
 
 const NotificationBoard: React.FC<NotificationBoardProps> = ({ notifications }) => {
+    const [markAllRead] = apiSlice.useMarkAllNotificationsReadMutation();
+    const [deleteNotification] = apiSlice.useDeleteNotificationMutation();
+
     const formatTimeAgo = (timestamp: string) => {
         const date = new Date(timestamp);
         const now = new Date();
@@ -15,10 +19,37 @@ const NotificationBoard: React.FC<NotificationBoardProps> = ({ notifications }) 
         return `${Math.floor(diffInHours / 24)} ngày trước`;
     };
 
+    const handleMarkAllRead = async () => {
+        try {
+            await markAllRead({}).unwrap();
+        } catch (error) {
+            console.error("Error marking all as read:", error);
+        }
+    };
+
+    const handleDelete = async (e: React.MouseEvent, notificationId: string) => {
+        e.stopPropagation();
+        try {
+            await deleteNotification(notificationId).unwrap();
+        } catch (error) {
+            console.error("Error deleting notification:", error);
+        }
+    };
+
+    const hasUnread = notifications?.some((n: any) => !n.isRead);
+
     return (
         <div className="w-80 bg-white rounded-2xl shadow-dropdown border border-surface-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-surface-100">
+            <div className="px-4 py-3 border-b border-surface-100 flex items-center justify-between">
                 <h3 className="font-semibold text-sm text-surface-900">Thông báo</h3>
+                {hasUnread && (
+                    <button
+                        className="text-xs font-medium text-brand-600 hover:text-brand-700 cursor-pointer"
+                        onClick={handleMarkAllRead}
+                    >
+                        Đọc tất cả
+                    </button>
+                )}
             </div>
 
             <div className="max-h-80 overflow-y-auto">
@@ -26,13 +57,13 @@ const NotificationBoard: React.FC<NotificationBoardProps> = ({ notifications }) 
                     <div>
                         {notifications.slice().reverse().map((noti: any, index: number) => (
                             <div 
-                                key={index} 
-                                className={`px-4 py-3 hover:bg-surface-50 cursor-pointer transition-colors border-b border-surface-50 ${
+                                key={noti.id ?? index} 
+                                className={`px-4 py-3 hover:bg-surface-50 cursor-pointer transition-colors border-b border-surface-50 group relative ${
                                     !noti.isRead ? 'bg-brand-50/50' : ''
                                 }`}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className="shrink-0 mt-0.5">
+                                    <div className="shrink-0 mt-0.5 w-2">
                                         {!noti.isRead && (
                                             <div className="w-2 h-2 bg-brand-500 rounded-full" />
                                         )}
@@ -45,6 +76,16 @@ const NotificationBoard: React.FC<NotificationBoardProps> = ({ notifications }) 
                                             {noti.createdAt ? formatTimeAgo(noti.createdAt) : 'Vừa xong'}
                                         </p>
                                     </div>
+                                    {/* Delete button */}
+                                    <button
+                                        className="shrink-0 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-danger text-surface-400 transition-all cursor-pointer"
+                                        onClick={(e) => handleDelete(e, noti.id)}
+                                        title="Xóa thông báo"
+                                    >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                         ))}

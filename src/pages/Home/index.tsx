@@ -1,33 +1,66 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 import ThreadCard from "../../components/ThreadCard";
 import apiSlice from "../../store/api";
+import { type Thread } from "../../interfaces/interfaces";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 const Home: React.FC = () => {
     const isLoggedIn = !!localStorage.getItem("jwt");
     const [page, setPage] = useState(1);
-    const { data: threads, isLoading, isFetching } = apiSlice.useGetHomeFeedQuery(
-        { page: 1, pageSize: page * PAGE_SIZE },
+    const [allThreads, setAllThreads] = useState<Thread[]>([]);
+    
+    const { data: threadsData, isLoading, isFetching } = apiSlice.useGetHomeFeedQuery(
+        { page, pageSize: PAGE_SIZE },
         { skip: !isLoggedIn }
     );
 
-    const hasMore = threads && threads.length >= page * PAGE_SIZE;
+    useEffect(() => {
+        if (threadsData?.items) {
+            if (page === 1) {
+                setAllThreads(threadsData.items);
+            } else {
+                // Deduplicate items just in case
+                setAllThreads(prev => {
+                    const existingIds = new Set(prev.map(t => t.id));
+                    const newItems = threadsData.items.filter((t: Thread) => !existingIds.has(t.id));
+                    return [...prev, ...newItems];
+                });
+            }
+        }
+    }, [threadsData, page]);
 
-    const handleLoadMore = useCallback(() => {
-        setPage(prev => prev + 1);
-    }, []);
+    const hasMore = threadsData?.hasNextPage ?? false;
+
+    const handleLoadMore = () => {
+        if (!isFetching && hasMore) {
+            setPage(prev => prev + 1);
+        }
+    };
 
     if (!isLoggedIn) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
-                    <span className="text-3xl">🌱</span>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="mb-8">
+                    <span className="font-logo font-extrabold text-6xl tracking-tighter bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent animate-pulse-slow">
+                        edyn
+                    </span>
                 </div>
-                <h1 className="text-2xl font-bold text-surface-900 mb-2">Chào mừng đến với Edyn</h1>
-                <p className="text-surface-500 max-w-md">
-                    Khám phá cộng đồng, chia sẻ ý tưởng, và kết nối với mọi người.
+                <h1 className="text-3xl font-bold text-surface-900 mb-3 tracking-tight">Khám phá không gian của riêng bạn</h1>
+                <p className="text-surface-500 max-w-md mb-8 leading-relaxed">
+                    Tham gia cộng đồng Edyn để bắt đầu chia sẻ ý tưởng, kết nối với những tâm hồn đồng điệu và xây dựng không gian sáng tạo của bạn.
                 </p>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => document.getElementById('login-button')?.click()}
+                        className="px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-200 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                    >
+                        Bắt đầu ngay
+                    </button>
+                    <button className="px-8 py-3 bg-white border border-surface-200 text-surface-700 font-bold rounded-2xl hover:bg-surface-50 transition-all cursor-pointer">
+                        Tìm hiểu thêm
+                    </button>
+                </div>
             </div>
         );
     }
@@ -47,8 +80,8 @@ const Home: React.FC = () => {
                 </div>
             </div>
 
-            {/* Loading skeleton */}
-            {isLoading && (
+            {/* Loading skeleton (only for initial load) */}
+            {isLoading && page === 1 && (
                 <div className="flex flex-col gap-4">
                     {[1, 2, 3].map((i) => (
                         <div key={i} className="bg-white rounded-2xl border border-surface-200/80 p-4 animate-pulse">
@@ -65,54 +98,70 @@ const Home: React.FC = () => {
             )}
 
             {/* Thread feed */}
-            {!isLoading && threads && (
-                <div className="flex flex-col gap-4">
-                    {threads.map((thread: any) => (
-                        <ThreadCard
-                            key={thread.id}
-                            threadId={thread.id}
-                            title={thread.title}
-                            content={thread.content}
-                            images={thread.images}
-                            createdAt={thread.createdAt}
-                            voteCount={thread.upvote}
-                            realm={thread.forumName || thread.realm || ""}
-                            vote={thread.vote}
-                            forumName={thread.forumName}
-                            forumImage={thread.forumImage}
-                        />
-                    ))}
+            <div className="flex flex-col gap-4">
+                {allThreads.map((thread: Thread) => (
+                    <ThreadCard
+                        key={thread.id}
+                        threadId={thread.id}
+                        title={thread.title}
+                        content={thread.content}
+                        images={thread.images}
+                        createdAt={thread.createdAt}
+                        voteCount={thread.upvote}
+                        realm={thread.forumName || ""}
+                        vote={thread.vote}
+                        forumName={thread.forumName}
+                        forumImage={thread.forumImage}
+                        tags={thread.tags}
+                        isPinned={thread.isPinned}
+                    />
+                ))}
 
-                    {/* Load more */}
-                    {hasMore && (
-                        <div className="flex justify-center py-4">
-                            <button
-                                className="px-6 py-2.5 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-full transition-colors cursor-pointer disabled:opacity-50"
-                                onClick={handleLoadMore}
-                                disabled={isFetching}
+                {/* Loading spinner for more items */}
+                {isFetching && page > 1 && (
+                    <div className="flex justify-center py-4">
+                        <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                )}
+
+                {/* Load more */}
+                {hasMore && !isFetching && (
+                    <div className="flex justify-center py-4">
+                        <button
+                            className="px-6 py-2.5 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-full transition-colors cursor-pointer"
+                            onClick={handleLoadMore}
+                        >
+                            Tải thêm
+                        </button>
+                    </div>
+                )}
+
+                {!isLoading && allThreads.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-surface-200/60 shadow-sm px-6 text-center">
+                        <div className="w-16 h-16 bg-surface-100 rounded-2xl flex items-center justify-center mb-6 text-3xl">
+                            📭
+                        </div>
+                        <h3 className="text-xl font-bold text-surface-900 mb-2">Bảng tin đang trống</h3>
+                        <p className="text-surface-500 max-w-sm mb-8 text-sm">
+                            Có vẻ như bạn chưa tham gia cộng đồng nào hoặc chưa có bài viết mới. Hãy bắt đầu bằng cách khám phá các cộng đồng thú vị!
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+                            <button 
+                                onClick={() => document.getElementById('search-input')?.focus()}
+                                className="flex-1 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer"
                             >
-                                {isFetching ? (
-                                    <span className="flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                                        Đang tải...
-                                    </span>
-                                ) : (
-                                    "Tải thêm"
-                                )}
+                                Khám phá cộng đồng
+                            </button>
+                            <button 
+                                onClick={() => document.getElementById('create-forum-button')?.click()}
+                                className="flex-1 px-5 py-2.5 bg-surface-100 hover:bg-surface-200 text-surface-700 text-sm font-bold rounded-xl transition-all cursor-pointer"
+                            >
+                                Tạo cộng đồng mới
                             </button>
                         </div>
-                    )}
-
-                    {threads.length === 0 && (
-                        <div className="text-center py-16 text-surface-400">
-                            <svg className="w-12 h-12 mx-auto mb-3 text-surface-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                            </svg>
-                            <p className="text-sm">Chưa có bài viết nào trong bảng tin</p>
-                        </div>
-                    )}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

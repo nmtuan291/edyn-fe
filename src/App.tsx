@@ -13,6 +13,8 @@ import Realm from './pages/Realm'
 import CreateThread from './pages/Realm/CreateThread';
 import ThreadContent from './pages/Thread/ThreadContent'
 import RealmManagement from './pages/RealmManagement'
+import Search from './pages/Search'
+import NotFound from './pages/NotFound'
 import "./App.css";
 import ApiLoadingOverlay from "./components/ApiLoadingOverlay";
 
@@ -46,7 +48,8 @@ function App() {
         <Route path="/realm/:name/create" element={<CreateThread />} />
         <Route path="/realm/:name/:id" element={<ThreadContent />} />
         <Route path="/realm/:name/manage" element={<RealmManagement />} />
-
+        <Route path="/search" element={<Search />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
     </>
