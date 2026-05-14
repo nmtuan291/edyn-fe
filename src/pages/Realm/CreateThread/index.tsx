@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import ForumDescription from '../../../components/ForumDescription';
 import TiptapEditor from '../../../components/TiptapEditor';
 import apiSlice from "../../../store/api";
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface PollType {
     pollContent: string,
@@ -16,6 +16,7 @@ const CreateThread: React.FC = () => {
     const [images, setImages] = useState<File[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
     const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
+    const navigate = useNavigate();
     const { name } = useParams();
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
@@ -51,7 +52,7 @@ const CreateThread: React.FC = () => {
                 });
             }
         },
-    
+
         prevImage: () => {
             if (images.length > 0) {
                 setSlideDirection("right");
@@ -61,7 +62,7 @@ const CreateThread: React.FC = () => {
                 }, 150);
             }
         },
-    
+
         nextImage: () => {
             if (images.length > 0) {
                 setSlideDirection("left");
@@ -71,7 +72,7 @@ const CreateThread: React.FC = () => {
                 }, 350);
             }
         },
-    
+
         goToImage: (index: number) => {
             if (images.length > 0 && index !== currentImageIndex) {
                 const direction = index > currentImageIndex ? 'left' : 'right';
@@ -100,16 +101,16 @@ const CreateThread: React.FC = () => {
                 formData.append("upload_preset", "product_upload");
                 formData.append("file", image);
                 const cloudName: string = "dh7jem3br";
-				const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, 
-					{
-						method: "POST",
-						body: formData
-					}
-				);
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
                 const responseJson = await response.json();
                 imageUrls.push(responseJson.secure_url);
             }
-    
+
             const forumThread = {
                 forumId: data.id,
                 title,
@@ -123,6 +124,7 @@ const CreateThread: React.FC = () => {
             }
 
             await createThreadMutation(forumThread).unwrap();
+            navigate(`/r/${name}`);
         } catch (error) {
             console.log(error);
         }
@@ -146,12 +148,12 @@ const CreateThread: React.FC = () => {
                 {/* Tab selector */}
                 <div className="px-5 pb-4 flex gap-2">
                     {tabs.map((tab) => (
-                        <button 
+                        <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer
-                                ${activeTab === tab.id 
-                                    ? 'bg-brand-100 text-brand-700 border border-brand-300' 
+                                ${activeTab === tab.id
+                                    ? 'bg-brand-100 text-brand-700 border border-brand-300'
                                     : 'bg-surface-50 text-surface-600 border border-surface-200 hover:bg-surface-100'
                                 }`}
                         >
@@ -224,7 +226,7 @@ const CreateThread: React.FC = () => {
                                                     className="w-full h-full object-contain rounded-xl"
                                                 />
                                             </div>
-                                            
+
                                             {images.length > 1 && (
                                                 <>
                                                     <button
@@ -245,7 +247,7 @@ const CreateThread: React.FC = () => {
                                                     </button>
                                                 </>
                                             )}
-                                            
+
                                             <button
                                                 className="absolute top-2 right-2 bg-danger hover:bg-red-600 text-white p-1.5 rounded-full transition-colors cursor-pointer"
                                                 onClick={() => imageActions.deleteImage(currentImageIndex)}
@@ -253,7 +255,7 @@ const CreateThread: React.FC = () => {
                                                 <Delete style={{ fontSize: 16 }} />
                                             </button>
                                         </div>
-                                        
+
                                         {images.length > 1 && (
                                             <div className="flex justify-center gap-1.5 mb-4">
                                                 {images.map((_, index) => (
@@ -265,7 +267,7 @@ const CreateThread: React.FC = () => {
                                                 ))}
                                             </div>
                                         )}
-                                        
+
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -293,7 +295,7 @@ const CreateThread: React.FC = () => {
                     {activeTab === 'poll' && (
                         <div>
                             <div className="space-y-2 mb-3">
-                                {pollItems.map((item, index) => 
+                                {pollItems.map((item, index) =>
                                     <div key={index} className="flex gap-2 items-center">
                                         <input
                                             type="text"
@@ -301,13 +303,14 @@ const CreateThread: React.FC = () => {
                                             className="flex-1 px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400"
                                             value={item.pollContent}
                                             onChange={event => setPollItems(prev => prev.map((i, idx) => idx === index ? {
-                                                ...i, 
-                                                pollContent: event.target.value} 
+                                                ...i,
+                                                pollContent: event.target.value
+                                            }
                                                 : i
                                             ))}
                                         />
                                         {pollItems.length >= 3 && (
-                                            <button 
+                                            <button
                                                 className="p-2 text-surface-400 hover:text-danger hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                                                 onClick={() => setPollItems(prev => prev.filter((_, idx) => idx !== index))}
                                             >
@@ -317,7 +320,7 @@ const CreateThread: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-                            <button 
+                            <button
                                 className="flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 cursor-pointer"
                                 onClick={() => setPollItems(prev => [
                                     ...prev, {
@@ -339,7 +342,7 @@ const CreateThread: React.FC = () => {
                         <button className="px-5 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 rounded-full transition-colors cursor-pointer">
                             Hủy
                         </button>
-                        <button 
+                        <button
                             className="px-6 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-full transition-colors cursor-pointer"
                             onClick={handleSubmit}
                         >

@@ -39,8 +39,8 @@ const ThreadContent: React.FC = () => {
     const currentVote = localVote ?? data?.vote ?? 0;
     const currentUpvote = localUpvote ?? data?.upvote ?? 0;
 
-    const creatorName = data?.forumName || creatorProfile?.userName || "User";
-    const creatorAvatar = data?.forumImage || creatorProfile?.avatar;
+    const creatorName = data?.creatorName || creatorProfile?.userName || data?.forumName || "User";
+    const creatorAvatar = data?.creatorAvatar || creatorProfile?.avatar || data?.forumImage;
 
     useEffect(() => {
         const el = document.getElementById("context-panel");

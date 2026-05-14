@@ -117,6 +117,9 @@ const Home: React.FC = () => {
                         forumImage={thread.forumImage}
                         tags={thread.tags}
                         isPinned={thread.isPinned}
+                        creatorName={thread.creatorName}
+                        creatorAvatar={thread.creatorAvatar}
+                        showRealmAsAuthor={true}
                     />
                 ))}
 

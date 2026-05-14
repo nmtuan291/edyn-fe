@@ -26,6 +26,8 @@ export interface Thread {
     vote: number,
     forumName?: string,
     forumImage?: string,
+    creatorName?: string,
+    creatorAvatar?: string,
 }
 
 export interface PagedResult<T> {

@@ -19,6 +19,9 @@ interface ThreadCardProps {
     forumImage?: string,
     tags?: ForumTag[],
     isPinned?: boolean,
+    creatorName?: string,
+    creatorAvatar?: string,
+    showRealmAsAuthor?: boolean,
 }
 
 const ThreadCard: React.FC<ThreadCardProps> = ({ 
@@ -34,14 +37,18 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
     forumImage,
     tags,
     isPinned,
+    creatorName,
+    creatorAvatar,
+    showRealmAsAuthor = false,
 }) => {
     const navigate = useNavigate();
     const [voteThread] = apiSlice.useVoteThreadMutation();
     const [localVote, setLocalVote] = useState(vote);
     const [localUpvote, setLocalUpvote] = useState(voteCount);
 
+    const displayName = showRealmAsAuthor ? (forumName || realm) : (creatorName || "User");
     const displayRealm = forumName || realm;
-    const avatarSrc = forumImage;
+    const avatarSrc = showRealmAsAuthor ? forumImage : creatorAvatar;
 
     const handleVote = async (e: React.MouseEvent, voteValue: number) => {
         e.stopPropagation();
@@ -68,10 +75,10 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                     <Avatar 
                         className="w-8 h-8" 
                         src={avatarSrc}
-                        name={displayRealm}
+                        name={displayName}
                     />
                     <div className="flex items-center gap-1.5 text-sm min-w-0">
-                        <span className="font-semibold text-surface-900 truncate">{displayRealm}</span>
+                        <span className="font-semibold text-surface-900 truncate">{displayName}</span>
                         <span className="text-surface-400">·</span>
                         <span className="text-surface-400 shrink-0">
                             {timeAgo(createdAt)}

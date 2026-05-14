@@ -134,6 +134,8 @@ const RealmPage: React.FC = () => {
                                 forumImage={thread.forumImage}
                                 tags={thread.tags}
                                 isPinned={thread.isPinned}
+                                creatorName={thread.creatorName}
+                                creatorAvatar={thread.creatorAvatar}
                             />
                         )}
                         {threads.length === 0 && !isFetching && (
