@@ -12,6 +12,10 @@ A modern forum platform built with React, TypeScript, and Vite. Edyn provides a 
 - Tailwind CSS
 - TipTap text editor
 
+## Demo Account
+Feel free to use the following demo credentials to explore the application:
+- **Username:** `aliciareid`
+- **Password:** `Password123!`
 
 ## Getting Started
 
