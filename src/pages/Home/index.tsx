@@ -15,9 +15,10 @@ const Home: React.FC = () => {
         { skip: !isLoggedIn }
     );
 
+    console.log("Home Feed API Status:", { threadsData, isLoading, isFetching });
+
     useEffect(() => {
         if (threadsData?.items) {
-            console.log("Home Feed API JSON:", threadsData);
             if (page === 1) {
                 setAllThreads(threadsData.items);
             } else {
