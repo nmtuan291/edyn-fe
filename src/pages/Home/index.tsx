@@ -18,21 +18,22 @@ const Home: React.FC = () => {
     console.log("Home Feed API Status:", { threadsData, isLoading, isFetching });
 
     useEffect(() => {
-        if (threadsData?.items) {
+        const items = Array.isArray(threadsData) ? threadsData : threadsData?.items;
+        if (items) {
             if (page === 1) {
-                setAllThreads(threadsData.items);
+                setAllThreads(items);
             } else {
                 // Deduplicate items just in case
                 setAllThreads(prev => {
                     const existingIds = new Set(prev.map(t => t.id));
-                    const newItems = threadsData.items.filter((t: Thread) => !existingIds.has(t.id));
+                    const newItems = items.filter((t: Thread) => !existingIds.has(t.id));
                     return [...prev, ...newItems];
                 });
             }
         }
     }, [threadsData, page]);
 
-    const hasMore = threadsData?.hasNextPage ?? false;
+    const hasMore = threadsData?.hasNextPage ?? (Array.isArray(threadsData) ? threadsData.length === PAGE_SIZE : false);
 
     const handleLoadMore = () => {
         if (!isFetching && hasMore) {
