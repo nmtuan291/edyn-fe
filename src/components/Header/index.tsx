@@ -68,7 +68,8 @@ const Header: React.FC = () => {
     const [searchForumsQuery] = apiSlice.useLazySearchForumsQuery();
     const [searchThreadsQuery] = apiSlice.useLazySearchThreadsQuery();
     
-    const handleMessage = useCallback((_message: string) => {
+    const handleMessage = useCallback((message: string) => {
+        console.log("Header: SignalR Notification Received!", message);
         refetch();
     }, [refetch]);
     
@@ -80,10 +81,11 @@ const Header: React.FC = () => {
     }, [onMessage, handleMessage, isLoggedIn]);
 
     useEffect(() => {
-        if (!isLoading && notifications)
-            if (notifications.length > 0 && !notifications[notifications.length - 1].isRead) {
-            }
-    }, [isLoading, notifications])
+        console.log("Header: Notifications data updated:", notifications);
+        if (!isLoading && notifications) {
+            console.log(`Header: Loaded ${notifications.length} notifications.`);
+        }
+    }, [isLoading, notifications]);
     
     useEffect(() => {
         const closeOption = (_event: MouseEvent) => {
