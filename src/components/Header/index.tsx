@@ -63,7 +63,7 @@ const Header: React.FC = () => {
     });
     const { data: notifications, isLoading, refetch } = apiSlice.useGetNotificationQuery({}, { skip: !isLoggedIn }); 
     const [ markAllRead ] = apiSlice.useMarkAllNotificationsReadMutation();
-    const { data: unreadData } = apiSlice.useGetUnreadNotificationCountQuery(undefined, { skip: !isLoggedIn });
+    const { data: unreadData, refetch: refetchUnread } = apiSlice.useGetUnreadNotificationCountQuery(undefined, { skip: !isLoggedIn });
     const [logoutMutation] = apiSlice.useLogoutMutation();
     const [searchForumsQuery] = apiSlice.useLazySearchForumsQuery();
     const [searchThreadsQuery] = apiSlice.useLazySearchThreadsQuery();
@@ -71,7 +71,8 @@ const Header: React.FC = () => {
     const handleMessage = useCallback((message: string) => {
         console.log("Header: SignalR Notification Received!", message);
         refetch();
-    }, [refetch]);
+        refetchUnread();
+    }, [refetch, refetchUnread]);
     
     useEffect(() => {
         if (isLoggedIn) {
