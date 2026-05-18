@@ -16,6 +16,9 @@ const apiSlice = createApi({
         login: builder.mutation({
             query: body => ({ url: "/auth/login", method: "POST", body })
         }),
+        oauthLogin: builder.mutation({
+            query: body => ({ url: "/auth/oauth-login", method: "POST", body })
+        }),
         register: builder.mutation({
             query: body => ({ url: "/auth/register", method: "POST", body })
         }),

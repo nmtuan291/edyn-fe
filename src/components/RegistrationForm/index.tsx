@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react"
-import GoogleIcon from '@mui/icons-material/Google';
 import { FacebookRounded } from '@mui/icons-material';
 import apiSlice from "../../store/api";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../store";
+import { setUser } from "../../store/user";
 
 interface RegistrationFormProps {
     showForm: boolean,
@@ -27,6 +27,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
     const [stage, setStage] = useState<number>(0);
 
     const [register] = apiSlice.useRegisterMutation();
+    const [oauthLogin] = apiSlice.useOauthLoginMutation();
     const dispatch = useDispatch<AppDispatch>();
 
     useEffect(() => {
@@ -40,7 +41,99 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
         document.addEventListener("click", handleCloseForm);
 
         return () => document.removeEventListener("click", handleCloseForm);
-    }, [])
+    }, []);
+
+    // OAuth: Initialize Google and Facebook SDKs when the form is shown (at Stage 0)
+    useEffect(() => {
+        if (!showForm || stage !== 0) return;
+
+        // Initialize Google Identity Services (GSI)
+        const google = (window as any).google;
+        if (google) {
+            google.accounts.id.initialize({
+                client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
+                callback: async (response: any) => {
+                    try {
+                        const result = await oauthLogin({
+                            provider: "google",
+                            idToken: response.credential
+                        }).unwrap();
+                        handleOauthSuccess(result);
+                    } catch (err) {
+                        console.error("Google Login failed", err);
+                    }
+                }
+            });
+
+            // Render Google's native button dynamically in our container
+            const btnContainer = document.getElementById("google-signup-btn");
+            if (btnContainer) {
+                google.accounts.id.renderButton(
+                    btnContainer,
+                    { 
+                        theme: "outline", 
+                        size: "large", 
+                        text: "signup_with",
+                        shape: "rectangular",
+                        logo_alignment: "left",
+                        width: btnContainer.clientWidth || 180
+                    }
+                );
+            }
+
+            // Trigger Google One Tap automatic prompt
+            google.accounts.id.prompt();
+        }
+
+        // Initialize Facebook SDK
+        const FB = (window as any).FB;
+        if (FB) {
+            FB.init({
+                appId: import.meta.env.VITE_FACEBOOK_APP_ID || "",
+                cookie: true,
+                xfbml: true,
+                version: "v19.0"
+            });
+        }
+    }, [showForm, stage]);
+
+    const handleOauthSuccess = (result: any) => {
+        localStorage.setItem("jwt", result.accessToken);
+        localStorage.setItem("refreshToken", result.refreshToken);
+        if (result.id && result.userName) {
+            dispatch(setUser({
+                id: result.id,
+                userName: result.userName,
+                email: result.email ?? "",
+            }));
+        }
+        closeForm();
+        setStage(0);
+    };
+
+    const handleFacebookLogin = () => {
+        const FB = (window as any).FB;
+        if (!FB) {
+            alert("Facebook SDK is still loading. Please try again in a moment.");
+            return;
+        }
+
+        FB.login(async (response: any) => {
+            if (response.authResponse) {
+                try {
+                    const result = await oauthLogin({
+                        provider: "facebook",
+                        idToken: response.authResponse.accessToken
+                    }).unwrap();
+                    handleOauthSuccess(result);
+                } catch (err) {
+                    console.error("Facebook Login failed", err);
+                }
+            } else {
+                console.log("User cancelled Facebook login or did not authorize.");
+            }
+        }, { scope: "email,public_profile" });
+    };
 
     const handleFieldChange = (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
         setUserInfo(prev => ({
@@ -152,12 +245,13 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
                                 <div className="flex-1 h-px bg-surface-200" />
                             </div>
 
-                            <div className="flex gap-3">
-                                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-surface-200 rounded-xl hover:bg-surface-50 transition-colors cursor-pointer">
-                                    <GoogleIcon style={{ fontSize: 20 }} className="text-[#4285F4]" />
-                                    <span className="text-sm font-medium text-surface-700">Google</span>
-                                </button>
-                                <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-surface-200 rounded-xl hover:bg-surface-50 transition-colors cursor-pointer">
+                            {/* Social buttons */}
+                            <div className="flex gap-3 items-center justify-center">
+                                <div id="google-signup-btn" className="flex-1 flex justify-center min-h-[40px]"></div>
+                                <button 
+                                    onClick={handleFacebookLogin}
+                                    className="flex-1 flex items-center justify-center gap-2 py-2 border border-surface-200 rounded-xl hover:bg-surface-50 transition-all cursor-pointer min-h-[40px]"
+                                >
                                     <FacebookRounded style={{ fontSize: 20 }} className="text-[#1877F2]" />
                                     <span className="text-sm font-medium text-surface-700">Facebook</span>
                                 </button>

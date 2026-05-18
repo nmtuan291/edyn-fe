@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import GoogleIcon from '@mui/icons-material/Google';
 import { FacebookRounded } from '@mui/icons-material';
 import apiSlice from "../../store/api";
 import { useDispatch } from 'react-redux';
@@ -13,15 +12,16 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistrationForm, onLoginSuccess }) => {
-    const [username, setUsername]  = useState<string>("");
+    const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [failedLogin, setFailedLogin] = useState<boolean>(false);
     const loginForm = useRef<HTMLDivElement>(null);
 
     const [login] = apiSlice.useLoginMutation();
+    const [oauthLogin] = apiSlice.useOauthLoginMutation();
     const dispatch = useDispatch();
 
-    const validInput: boolean = username.length >= 5 && password.length >= 8
+    const validInput: boolean = username.length >= 5 && password.length >= 8;
 
     useEffect(() => {
         const handleCloseForm = (event: MouseEvent) => {
@@ -33,7 +33,101 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
         document.addEventListener("click", handleCloseForm);
 
         return () => document.removeEventListener("click", handleCloseForm);
-    }, [])
+    }, []);
+
+    // OAuth: Initialize Google and Facebook SDKs when the form is shown
+    useEffect(() => {
+        if (!showForm) return;
+
+        // Initialize Google Identity Services (GSI)
+        const google = (window as any).google;
+        if (google) {
+            google.accounts.id.initialize({
+                client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
+                callback: async (response: any) => {
+                    try {
+                        const result = await oauthLogin({
+                            provider: "google",
+                            idToken: response.credential
+                        }).unwrap();
+                        handleOauthSuccess(result);
+                    } catch (err) {
+                        console.error("Google Login failed", err);
+                        setFailedLogin(true);
+                    }
+                }
+            });
+
+            // Render Google's native button dynamically in our container
+            const btnContainer = document.getElementById("google-signin-btn");
+            if (btnContainer) {
+                google.accounts.id.renderButton(
+                    btnContainer,
+                    {
+                        theme: "outline",
+                        size: "large",
+                        text: "signin_with",
+                        shape: "rectangular",
+                        logo_alignment: "left",
+                        width: btnContainer.clientWidth || 180
+                    }
+                );
+            }
+
+            // Trigger Google One Tap automatic prompt
+            google.accounts.id.prompt();
+        }
+
+        // Initialize Facebook SDK
+        const FB = (window as any).FB;
+        if (FB) {
+            FB.init({
+                appId: import.meta.env.VITE_FACEBOOK_APP_ID || "",
+                cookie: true,
+                xfbml: true,
+                version: "v19.0"
+            });
+        }
+    }, [showForm]);
+
+    const handleOauthSuccess = (result: any) => {
+        localStorage.setItem("jwt", result.accessToken);
+        localStorage.setItem("refreshToken", result.refreshToken);
+        if (result.id && result.userName) {
+            dispatch(setUser({
+                id: result.id,
+                userName: result.userName,
+                email: result.email ?? "",
+            }));
+        }
+        onLoginSuccess?.();
+        closeForm();
+    };
+
+    const handleFacebookLogin = () => {
+        const FB = (window as any).FB;
+        if (!FB) {
+            alert("Facebook SDK is still loading. Please try again in a moment.");
+            return;
+        }
+
+        FB.login(async (response: any) => {
+            if (response.authResponse) {
+                try {
+                    const result = await oauthLogin({
+                        provider: "facebook",
+                        idToken: response.authResponse.accessToken
+                    }).unwrap();
+                    handleOauthSuccess(result);
+                } catch (err) {
+                    console.error("Facebook Login failed", err);
+                    setFailedLogin(true);
+                }
+            } else {
+                console.log("User cancelled Facebook login or did not authorize.");
+            }
+        }, { scope: "email,public_profile" });
+    };
 
     const hanldeOpenRegistrationForm = (event: React.MouseEvent) => {
         event.stopPropagation();
@@ -68,7 +162,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div 
+            <div
                 className="bg-white rounded-2xl shadow-modal w-full max-w-md mx-4 overflow-hidden"
                 ref={loginForm}
             >
@@ -90,17 +184,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                 {/* Form */}
                 <div className="p-6">
                     <div className="flex flex-col gap-3 mb-4">
-                        <input 
-                            type="text" 
-                            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
-                            placeholder="Tên người dùng hoặc email" 
+                        <input
+                            type="text"
+                            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400"
+                            placeholder="Tên người dùng hoặc email"
                             onChange={(event) => setUsername(event.target.value)}
                             value={username}
                         />
-                        <input 
-                            type="password" 
-                            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
-                            placeholder="Mật khẩu" 
+                        <input
+                            type="password"
+                            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400"
+                            placeholder="Mật khẩu"
                             onChange={(event) => setPassword(event.target.value)}
                             value={password}
                         />
@@ -110,10 +204,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                         <p className="text-sm text-danger mb-4">Thông tin đăng nhập không chính xác</p>
                     )}
 
-                    <button 
+                    <button
                         className={`w-full py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer
-                            ${!validInput 
-                                ? "bg-surface-100 text-surface-400 cursor-not-allowed" 
+                            ${!validInput
+                                ? "bg-surface-100 text-surface-400 cursor-not-allowed"
                                 : "bg-brand-600 hover:bg-brand-700 text-white"
                             }`}
                         onClick={() => handleLogin()}
@@ -130,12 +224,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                     </div>
 
                     {/* Social buttons */}
-                    <div className="flex gap-3">
-                        <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-surface-200 rounded-xl hover:bg-surface-50 transition-colors cursor-pointer">
-                            <GoogleIcon style={{ fontSize: 20 }} className="text-[#4285F4]" />
-                            <span className="text-sm font-medium text-surface-700">Google</span>
-                        </button>
-                        <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-surface-200 rounded-xl hover:bg-surface-50 transition-colors cursor-pointer">
+                    <div className="flex gap-3 items-center justify-center">
+                        <div id="google-signin-btn" className="flex-1 flex justify-center min-h-[40px]"></div>
+                        <button
+                            onClick={handleFacebookLogin}
+                            className="flex-1 flex items-center justify-center gap-2 py-2 border border-surface-200 rounded-xl hover:bg-surface-50 transition-all cursor-pointer min-h-[40px]"
+                        >
                             <FacebookRounded style={{ fontSize: 20 }} className="text-[#1877F2]" />
                             <span className="text-sm font-medium text-surface-700">Facebook</span>
                         </button>
@@ -146,7 +240,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
                         <a className="text-sm text-brand-600 hover:underline cursor-pointer">Quên mật khẩu?</a>
                         <p className="text-sm text-surface-500 mt-2">
                             Chưa có tài khoản?{' '}
-                            <a 
+                            <a
                                 className="text-brand-600 font-medium hover:underline cursor-pointer"
                                 onClick={(event) => hanldeOpenRegistrationForm(event)}
                             >
