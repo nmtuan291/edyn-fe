@@ -111,18 +111,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ showForm, closeForm, openRegistra
             return;
         }
 
-        FB.login(async (response: any) => {
+        FB.login((response: any) => {
             if (response.authResponse) {
-                try {
-                    const result = await oauthLogin({
-                        provider: "facebook",
-                        idToken: response.authResponse.accessToken
-                    }).unwrap();
-                    handleOauthSuccess(result);
-                } catch (err) {
-                    console.error("Facebook Login failed", err);
-                    setFailedLogin(true);
-                }
+                const doOauth = async () => {
+                    try {
+                        const result = await oauthLogin({
+                            provider: "facebook",
+                            idToken: response.authResponse.accessToken
+                        }).unwrap();
+                        handleOauthSuccess(result);
+                    } catch (err) {
+                        console.error("Facebook Login failed", err);
+                        setFailedLogin(true);
+                    }
+                };
+                doOauth();
             } else {
                 console.log("User cancelled Facebook login or did not authorize.");
             }
