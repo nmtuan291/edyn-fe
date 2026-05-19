@@ -2,18 +2,27 @@ import React, { useState, useEffect } from "react";
 import ThreadCard from "../../components/ThreadCard";
 import apiSlice from "../../store/api";
 import { type Thread } from "../../interfaces/interfaces";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store";
 
 const PAGE_SIZE = 10;
 
 const Home: React.FC = () => {
-    const isLoggedIn = !!localStorage.getItem("jwt");
+    const user = useSelector((state: RootState) => state.user);
+    const isLoggedIn = !!user.id;
     const [page, setPage] = useState(1);
     const [allThreads, setAllThreads] = useState<Thread[]>([]);
-    
+
     const { data: threadsData, isLoading, isFetching } = apiSlice.useGetHomeFeedQuery(
         { page, pageSize: PAGE_SIZE },
         { skip: !isLoggedIn }
     );
+
+    // Reset feed when login status changes (e.g. logging in or logging out)
+    useEffect(() => {
+        setPage(1);
+        setAllThreads([]);
+    }, [isLoggedIn]);
 
     console.log("Home Feed API Status:", { threadsData, isLoading, isFetching });
 
@@ -54,7 +63,7 @@ const Home: React.FC = () => {
                     Tham gia cộng đồng Edyn để bắt đầu chia sẻ ý tưởng, kết nối với những tâm hồn đồng điệu và xây dựng không gian sáng tạo của bạn.
                 </p>
                 <div className="flex gap-4">
-                    <button 
+                    <button
                         onClick={() => document.getElementById('login-button')?.click()}
                         className="px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-200 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                     >
@@ -152,13 +161,13 @@ const Home: React.FC = () => {
                             Có vẻ như bạn chưa tham gia cộng đồng nào hoặc chưa có bài viết mới. Hãy bắt đầu bằng cách khám phá các cộng đồng thú vị!
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
-                            <button 
+                            <button
                                 onClick={() => document.getElementById('search-input')?.focus()}
                                 className="flex-1 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-all cursor-pointer"
                             >
                                 Khám phá cộng đồng
                             </button>
-                            <button 
+                            <button
                                 onClick={() => document.getElementById('create-forum-button')?.click()}
                                 className="flex-1 px-5 py-2.5 bg-surface-100 hover:bg-surface-200 text-surface-700 text-sm font-bold rounded-xl transition-all cursor-pointer"
                             >

@@ -25,6 +25,7 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
     })
     const validInput: boolean = true;
     const [stage, setStage] = useState<number>(0);
+    const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
     const [register] = apiSlice.useRegisterMutation();
     const [oauthLogin] = apiSlice.useOauthLoginMutation();
@@ -177,6 +178,24 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
             case 2:
                 try {
                     await register(userInfo).unwrap();
+                    setIsSuccess(true);
+                    setTimeout(() => {
+                        closeForm();
+                        setIsSuccess(false);
+                        setStage(0);
+                        // Clear user registration inputs
+                        setUserInfo({
+                            email: "",
+                            userName: "",
+                            password: "",
+                            passwordVerify: "",
+                            gender: 0
+                        });
+                        // Trigger opening of login modal after a slight delay to allow closing animation
+                        setTimeout(() => {
+                            document.getElementById('login-button')?.click();
+                        }, 100);
+                    }, 2500);
                 } catch (error) {
                     console.log(error);
                 } 
@@ -199,146 +218,197 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ( {showForm, closeForm
                 className="bg-white rounded-2xl shadow-modal w-full max-w-md mx-4 overflow-hidden"
                 ref={registrationForm}
             >
-                {/* Header */}
-                <div className="p-8 pb-0 text-center">
-                    <div className="mb-6">
-                        <span className="font-logo font-extrabold text-3xl tracking-tight bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
-                            edyn
-                        </span>
-                    </div>
-                    <h1 className="text-2xl font-bold text-surface-900 mb-1">Đăng ký</h1>
-                    {/* Progress indicator */}
-                    <div className="flex items-center justify-center gap-2 mt-3">
-                        {[0, 1, 2].map((step) => (
-                            <div
-                                key={step}
-                                className={`h-1 rounded-full transition-all ${
-                                    step <= stage ? "bg-brand-500 w-8" : "bg-surface-200 w-4"
-                                }`}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div className="p-6">
-                    {/* Stage 0: Email */}
-                    {stage === 0 && (
-                        <>
-                            <p className="text-sm text-surface-500 leading-relaxed mb-5 text-center">
-                                Với việc tiếp tục, bạn đồng ý với{' '}
-                                <a className="text-brand-600 hover:underline cursor-pointer">Điều khoản dịch vụ</a> và{' '}
-                                <a className="text-brand-600 hover:underline cursor-pointer">Chính sách quyền riêng tư</a>.
-                            </p>
-                            <div className="mb-4">
-                                <input 
-                                    type="email" 
-                                    className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
-                                    placeholder="Email" 
-                                    onChange={(event) => handleFieldChange(event, "email")}
-                                    value={userInfo.email}
-                                />
-                                {errors.email && (
-                                    <p className="text-sm text-danger mt-1.5">{errors.email}</p>
-                                )}
-                            </div>
-
-                            <div className="flex items-center my-5">
-                                <div className="flex-1 h-px bg-surface-200" />
-                                <span className="px-4 text-xs text-surface-400">Hoặc tiếp tục với</span>
-                                <div className="flex-1 h-px bg-surface-200" />
-                            </div>
-
-                            {/* Social buttons */}
-                            <div className="flex gap-3 items-center justify-center">
-                                <div id="google-signup-btn" className="flex-1 flex justify-center min-h-[40px]"></div>
-                                <button 
-                                    onClick={handleFacebookLogin}
-                                    className="flex-1 flex items-center justify-center gap-2 py-2 border border-surface-200 rounded-xl hover:bg-surface-50 transition-all cursor-pointer min-h-[40px]"
-                                >
-                                    <FacebookRounded style={{ fontSize: 20 }} className="text-[#1877F2]" />
-                                    <span className="text-sm font-medium text-surface-700">Facebook</span>
-                                </button>
-                            </div>
-                        </>
-                    )}
-
-                    {/* Stage 1: Credentials */}
-                    {stage === 1 && (
-                        <div className="flex flex-col gap-3 mb-4">
-                            <div>
-                                <input 
-                                    type="text" 
-                                    className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
-                                    placeholder="Tên đăng nhập"
-                                    onChange={event => handleFieldChange(event, "userName")}
-                                    value={userInfo.userName}
-                                />
-                                {errors.userName && (
-                                    <p className="text-sm text-danger mt-1.5">{errors.userName}</p>
-                                )}
-                            </div>
-                            <input 
-                                type="password" 
-                                className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
-                                placeholder="Mật khẩu"
-                                onChange={event => handleFieldChange(event, "password")}
-                                value={userInfo.password} 
-                            />
-                            <input 
-                                type="password" 
-                                className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
-                                placeholder="Xác nhận mật khẩu" 
-                                onChange={event => handleFieldChange(event, "passwordVerify")}
-                                value={userInfo.passwordVerify}
-                            />
+                {isSuccess ? (
+                    /* Beautiful Success Screen */
+                    <div className="p-8 py-12 text-center flex flex-col items-center justify-center animate-fade-in">
+                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 text-emerald-500 border border-emerald-100 shadow-sm">
+                            <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
                         </div>
-                    )}
-
-                    {/* Stage 2: Gender */}
-                    {stage === 2 && (
-                        <div>
-                            <button 
-                                className="absolute top-5 right-5 text-sm text-surface-400 hover:text-surface-600 transition-colors cursor-pointer"
-                                onClick={closeForm}
-                            >
-                                Bỏ qua
-                            </button>
-                            <p className="text-sm text-surface-500 text-center mb-6">
-                                Hãy cho chúng tôi biết rõ hơn về bạn
-                            </p>
-                            <p className="text-sm font-semibold text-surface-700 text-center mb-3">
-                                Giới tính của bạn là gì?
-                            </p>
-                            <div className="flex flex-col gap-2">
-                                {genderOptions.map((option) => (
-                                    <button
-                                        key={option.value}
-                                        className={`w-full py-3 px-4 rounded-xl text-sm font-medium transition-all cursor-pointer
-                                            ${userInfo.gender === option.value 
-                                                ? "bg-brand-50 border-2 border-brand-500 text-brand-700" 
-                                                : "bg-surface-50 border border-surface-200 text-surface-700 hover:bg-surface-100"
-                                            }`}
-                                        onClick={() => setUserInfo(prev => ({...prev, gender: option.value}))}
-                                    >
-                                        {option.label}
-                                    </button>
+                        <h2 className="text-2xl font-bold text-surface-900 mb-2 tracking-tight">Đăng ký thành công!</h2>
+                        <p className="text-sm text-surface-500 leading-relaxed max-w-xs mb-6">
+                            Chào mừng bạn đến với Edyn! Tài khoản của bạn đã được thiết lập. Bạn sẽ được tự động chuyển hướng sang màn hình Đăng nhập trong giây lát...
+                        </p>
+                        <div className="flex items-center justify-center gap-2">
+                            <div className="w-4.5 h-4.5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-xs font-semibold text-brand-600">Đang tải biểu mẫu...</span>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div className="p-8 pb-0 text-center">
+                            <div className="mb-6">
+                                <span className="font-logo font-extrabold text-3xl tracking-tight bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
+                                    edyn
+                                </span>
+                            </div>
+                            <h1 className="text-2xl font-bold text-surface-900 mb-1">Đăng ký</h1>
+                            {/* Progress indicator */}
+                            <div className="flex items-center justify-center gap-2 mt-3">
+                                {[0, 1, 2].map((step) => (
+                                    <div
+                                        key={step}
+                                        className={`h-1 rounded-full transition-all ${
+                                            step <= stage ? "bg-brand-500 w-8" : "bg-surface-200 w-4"
+                                        }`}
+                                    />
                                 ))}
                             </div>
                         </div>
-                    )}
 
-                    {/* Action button */}
-                    <button 
-                        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer mt-6
-                            ${!validInput 
-                                ? "bg-surface-100 text-surface-400 cursor-not-allowed" 
-                                : "bg-brand-600 hover:bg-brand-700 text-white"
-                            }`}
-                        onClick={() => handleNextButton()}
-                    >
-                        {stage === 2 ? "Hoàn tất" : "Tiếp tục"}
-                    </button>
-                </div>
+                        <div className="p-6">
+                            {/* Stage 0: Email */}
+                            {stage === 0 && (
+                                <>
+                                    <p className="text-sm text-surface-500 leading-relaxed mb-5 text-center">
+                                        Với việc tiếp tục, bạn đồng ý với{' '}
+                                        <a className="text-brand-600 hover:underline cursor-pointer">Điều khoản dịch vụ</a> và{' '}
+                                        <a className="text-brand-600 hover:underline cursor-pointer">Chính sách quyền riêng tư</a>.
+                                    </p>
+                                    <div className="mb-4">
+                                        <input 
+                                            type="email" 
+                                            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
+                                            placeholder="Email" 
+                                            onChange={(event) => handleFieldChange(event, "email")}
+                                            value={userInfo.email}
+                                        />
+                                        {errors.email && (
+                                            <p className="text-sm text-danger mt-1.5">{errors.email}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center my-5">
+                                        <div className="flex-1 h-px bg-surface-200" />
+                                        <span className="px-4 text-xs text-surface-400">Hoặc tiếp tục với</span>
+                                        <div className="flex-1 h-px bg-surface-200" />
+                                    </div>
+
+                                    {/* Social buttons */}
+                                    <div className="flex gap-3 items-center justify-center">
+                                        <div className="flex-1 relative min-h-[40px] flex items-center justify-center">
+                                            {/* Custom styled Google button */}
+                                            <button
+                                                className="w-full flex items-center justify-center gap-2 py-2 border border-surface-200 rounded-xl hover:bg-surface-50 transition-all cursor-pointer min-h-[40px]"
+                                            >
+                                                <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24">
+                                                    <path
+                                                        fill="#EA4335"
+                                                        d="M5.26620003,9.76451671 C6.19875005,6.93863338 8.85233337,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.52545455 16.4,6.54545455 L19.9254545,3.02 C17.7927273,1.15090909 15.0272727,0 12,0 C7.33090909,0 3.32727273,2.69090909 1.39090909,6.61636364 L5.26620003,9.76451671 Z"
+                                                    />
+                                                    <path
+                                                        fill="#34A853"
+                                                        d="M16.0407,17.6925833 C14.89675,18.4566667 13.5186,18.9090909 12,18.9090909 C8.85233337,18.9090909 6.19875005,16.8795485 5.26620003,14.0536652 L1.39090909,17.2018182 C3.32727273,21.1272727 7.33090909,23.8181818 12,23.8181818 C15.0272727,23.8181818 17.7981818,22.7181818 19.8981818,20.8418182 L16.0407,17.6925833 Z"
+                                                    />
+                                                    <path
+                                                        fill="#4285F4"
+                                                        d="M23.8181818,12 C23.8181818,11.16 23.7381818,10.3854545 23.5909091,9.63818182 L12,9.63818182 L12,14.1709091 L18.6272727,14.1709091 C18.3490909,15.66 17.5036364,16.9254545 16.2436364,17.7709091 L20.1010909,20.9200003 C22.3527273,18.8454545 23.8181818,15.7090909 23.8181818,12 Z"
+                                                    />
+                                                    <path
+                                                        fill="#FBBC05"
+                                                        d="M5.26620003,9.76451671 C4.97855,10.6383333 4.81818182,11.57425 4.81818182,12.5454545 C4.81818182,13.5166591 4.97855,14.4525758 5.26620003,15.3263924 L1.39090909,12.1782394 C0.505454545,10.1509091 0.505454545,7.85454545 1.39090909,5.82727273 L5.26620003,9.76451671 Z"
+                                                    />
+                                                </svg>
+                                                <span className="text-sm font-medium text-surface-700">Google</span>
+                                            </button>
+                                            {/* Hidden native GSI button mapped over it */}
+                                            <div
+                                                id="google-signup-btn"
+                                                className="absolute inset-0 opacity-0 cursor-pointer overflow-hidden [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!min-w-full [&_iframe]:!cursor-pointer"
+                                            ></div>
+                                        </div>
+                                        <button 
+                                            onClick={handleFacebookLogin}
+                                            className="flex-1 flex items-center justify-center gap-2 py-2 border border-surface-200 rounded-xl hover:bg-surface-50 transition-all cursor-pointer min-h-[40px]"
+                                        >
+                                            <FacebookRounded style={{ fontSize: 20 }} className="text-[#1877F2]" />
+                                            <span className="text-sm font-medium text-surface-700">Facebook</span>
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Stage 1: Credentials */}
+                            {stage === 1 && (
+                                <div className="flex flex-col gap-3 mb-4">
+                                    <div>
+                                        <input 
+                                            type="text" 
+                                            className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
+                                            placeholder="Tên đăng nhập"
+                                            onChange={event => handleFieldChange(event, "userName")}
+                                            value={userInfo.userName}
+                                        />
+                                        {errors.userName && (
+                                            <p className="text-sm text-danger mt-1.5">{errors.userName}</p>
+                                        )}
+                                    </div>
+                                    <input 
+                                        type="password" 
+                                        className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
+                                        placeholder="Mật khẩu"
+                                        onChange={event => handleFieldChange(event, "password")}
+                                        value={userInfo.password} 
+                                    />
+                                    <input 
+                                        type="password" 
+                                        className="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all placeholder:text-surface-400" 
+                                        placeholder="Xác nhận mật khẩu" 
+                                        onChange={event => handleFieldChange(event, "passwordVerify")}
+                                        value={userInfo.passwordVerify}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Stage 2: Gender */}
+                            {stage === 2 && (
+                                <div>
+                                    <button 
+                                        className="absolute top-5 right-5 text-sm text-surface-400 hover:text-surface-600 transition-colors cursor-pointer"
+                                        onClick={closeForm}
+                                    >
+                                        Bỏ qua
+                                    </button>
+                                    <p className="text-sm text-surface-500 text-center mb-6">
+                                        Hãy cho chúng tôi biết rõ hơn về bạn
+                                    </p>
+                                    <p className="text-sm font-semibold text-surface-700 text-center mb-3">
+                                        Giới tính của bạn là gì?
+                                    </p>
+                                    <div className="flex flex-col gap-2">
+                                        {genderOptions.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                className={`w-full py-3 px-4 rounded-xl text-sm font-medium transition-all cursor-pointer
+                                                    ${userInfo.gender === option.value 
+                                                        ? "bg-brand-50 border-2 border-brand-500 text-brand-700" 
+                                                        : "bg-surface-50 border border-surface-200 text-surface-700 hover:bg-surface-100"
+                                                    }`}
+                                                onClick={() => setUserInfo(prev => ({...prev, gender: option.value}))}
+                                            >
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Action button */}
+                            <button 
+                                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer mt-6
+                                    ${!validInput 
+                                        ? "bg-surface-100 text-surface-400 cursor-not-allowed" 
+                                        : "bg-brand-600 hover:bg-brand-700 text-white"
+                                    }`}
+                                onClick={() => handleNextButton()}
+                            >
+                                {stage === 2 ? "Hoàn tất" : "Tiếp tục"}
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     )

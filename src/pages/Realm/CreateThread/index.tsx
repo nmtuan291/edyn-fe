@@ -124,7 +124,8 @@ const CreateThread: React.FC = () => {
             }
 
             await createThreadMutation(forumThread).unwrap();
-            navigate(`/r/${name}`);
+            const targetPath = window.location.pathname.startsWith("/realm/") ? `/realm/${name}` : `/r/${name}`;
+            navigate(targetPath);
         } catch (error) {
             console.log(error);
         }
@@ -339,7 +340,10 @@ const CreateThread: React.FC = () => {
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-5 mt-5 border-t border-surface-100">
-                        <button className="px-5 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 rounded-full transition-colors cursor-pointer">
+                        <button 
+                            onClick={() => navigate(-1)}
+                            className="px-5 py-2 text-sm font-medium text-surface-600 hover:bg-surface-100 rounded-full transition-colors cursor-pointer"
+                        >
                             Hủy
                         </button>
                         <button

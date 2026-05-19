@@ -47,6 +47,22 @@ function dedupeConversationsByParticipantPair(list: Conversation[]): Conversatio
 /** Must match the hub method name from ChatHub.SendAsync(...) on the server (often `ReceiveMessage`). */
 const CHAT_SIGNALR_RECEIVE_METHOD = 'ReceiveMessage';
 
+const UserDisplayName: React.FC<{ userId: string; defaultName?: string }> = ({ userId, defaultName }) => {
+  const { data: profile } = apiSlice.useGetUserProfileQuery(userId, { skip: !userId });
+  return <>{profile?.userName || defaultName || userId}</>;
+};
+
+const UserAvatar: React.FC<{ userId: string; className?: string }> = ({ userId, className }) => {
+  const { data: profile } = apiSlice.useGetUserProfileQuery(userId, { skip: !userId });
+  return (
+    <img
+      className={className || "w-10 h-10 rounded-full object-cover shrink-0"}
+      src={profile?.avatar?.trim() ? profile.avatar : defaultAvatar}
+      alt=""
+    />
+  );
+};
+
 const ChatWidget: React.FC = () => {
   const { 
     isOpen, 
@@ -174,6 +190,8 @@ const ChatWidget: React.FC = () => {
 
   const messages: ChatMessage[] = messagesData || [];
 
+  if (!hasJwt || !currentUserId) return null;
+
   return (
     <>
       {/* Floating Chat Button */}
@@ -217,7 +235,10 @@ const ChatWidget: React.FC = () => {
                     ? targetUserName || 'Tin nhắn mới'
                     : (() => {
                         const conv = conversations.find(c => c.id === selectedConversation);
-                        if (conv) return getOtherUserName(getOtherUserId(conv));
+                        if (conv) {
+                          const otherId = getOtherUserId(conv);
+                          return <UserDisplayName userId={otherId} defaultName={otherId} />;
+                        }
                         return 'Tin nhắn';
                       })()
                   }
@@ -249,21 +270,18 @@ const ChatWidget: React.FC = () => {
               ) : (
                 conversations.map((conversation) => {
                   const otherUserId = getOtherUserId(conversation);
-                  const otherUserName = getOtherUserName(otherUserId);
                   return (
                     <button
                       key={conversation.id}
                       onClick={() => setSelectedConversation(conversation.id)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-50 transition-colors cursor-pointer border-b border-surface-50"
                     >
-                      <img
-                        className="w-10 h-10 rounded-full object-cover shrink-0"
-                        src={defaultAvatar}
-                        alt=""
-                      />
+                      <UserAvatar userId={otherUserId} className="w-10 h-10 rounded-full object-cover shrink-0" />
                       <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-surface-900 truncate">{otherUserName}</p>
+                          <p className="text-sm font-medium text-surface-900 truncate">
+                            <UserDisplayName userId={otherUserId} defaultName={otherUserId} />
+                          </p>
                           {conversation.lastMessageAt && (
                             <span className="text-[10px] text-surface-400 shrink-0 ml-2">{timeAgo(conversation.lastMessageAt)}</span>
                           )}

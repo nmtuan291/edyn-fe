@@ -2,15 +2,15 @@ import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { apiRequestFinished, apiRequestStarted } from "../ui";
 
-/** Chat traffic is frequent (send + refetch + polling); skip full-screen ApiLoadingOverlay for it. */
+/** Chat and notification traffic is frequent; skip full-screen ApiLoadingOverlay for them. */
 function shouldSkipGlobalLoading(args: string | FetchArgs): boolean {
     const raw = typeof args === "string" ? args : args.url;
     if (!raw) return false;
     try {
         const path = raw.startsWith("http") ? new URL(raw).pathname : raw;
-        return path.includes("/chat/");
+        return path.includes("/chat/") || path.includes("/notifications");
     } catch {
-        return raw.includes("/chat/");
+        return raw.includes("/chat/") || raw.includes("/notifications");
     }
 }
 

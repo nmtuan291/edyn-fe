@@ -29,7 +29,7 @@ const MobileSidebar: React.FC = () => {
             path: "/explore",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18Zm0-3a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm-.75-6.75 2.5-1 1 2.5-2.5 1-1-2.5Z" />
                 </svg>
             ),
         },

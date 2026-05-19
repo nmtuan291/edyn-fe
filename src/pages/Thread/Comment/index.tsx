@@ -195,16 +195,18 @@ const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
                                 Chia sẻ
                             </button>
 
-                            <button 
-                                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-surface-500 hover:text-brand-600 hover:bg-brand-50 rounded-full transition-colors cursor-pointer"
-                                onClick={handleChatClick}
-                                title={`Chat với ${comment.ownerName || "User"}`}
-                            >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 6 21a5.969 5.969 0 0 0 1.936-1.094A3.61 3.61 0 0 1 6.768 18.5c-1.414-1.457-2.268-3.376-2.268-5.5 0-4.556 4.03-8.25 9-8.25S21 7.444 21 12Z" />
-                                </svg>
-                                Chat
-                            </button>
+                            {currentUser.id && (
+                                <button 
+                                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-surface-500 hover:text-brand-600 hover:bg-brand-50 rounded-full transition-colors cursor-pointer"
+                                    onClick={handleChatClick}
+                                    title={`Chat với ${comment.ownerName || "User"}`}
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 6 21a5.969 5.969 0 0 0 1.936-1.094A3.61 3.61 0 0 1 6.768 18.5c-1.414-1.457-2.268-3.376-2.268-5.5 0-4.556 4.03-8.25 9-8.25S21 7.444 21 12Z" />
+                                    </svg>
+                                    Chat
+                                </button>
+                            )}
 
                             {/* Options (three dot) */}
                             <div className="relative ml-auto">
