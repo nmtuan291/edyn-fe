@@ -139,10 +139,6 @@ const ChatWidget: React.FC = () => {
     return conv.user1Id === currentUserId ? conv.user2Id : conv.user1Id;
   };
 
-  const getOtherUserName = (userId: string) => {
-    return userId;
-  };
-
   useEffect(() => {
     if (targetUserId && targetUserName && isOpen) {
       const existingConversation = conversations.find(conv => 
