@@ -5,6 +5,7 @@ import apiSlice from "../../store/api";
 import { timeAgo, formatVoteCount } from "../../utils/timeAgo";
 import Avatar from "../Avatar";
 import type { ForumTag } from "../../interfaces/interfaces";
+import Modal from "../Modal";
 
 interface ThreadCardProps {
     title: string,
@@ -21,16 +22,17 @@ interface ThreadCardProps {
     isPinned?: boolean,
     creatorName?: string,
     creatorAvatar?: string,
+    creatorId?: string,
     showRealmAsAuthor?: boolean,
 }
 
-const ThreadCard: React.FC<ThreadCardProps> = ({ 
-    title, 
-    content, 
-    images, 
-    createdAt, 
-    threadId, 
-    voteCount, 
+const ThreadCard: React.FC<ThreadCardProps> = ({
+    title,
+    content,
+    images,
+    createdAt,
+    threadId,
+    voteCount,
     realm,
     vote,
     forumName,
@@ -39,16 +41,33 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
     isPinned,
     creatorName,
     creatorAvatar,
+    creatorId,
     showRealmAsAuthor = false,
 }) => {
     const navigate = useNavigate();
     const [voteThread] = apiSlice.useVoteThreadMutation();
     const [localVote, setLocalVote] = useState(vote);
     const [localUpvote, setLocalUpvote] = useState(voteCount);
+    const [showWarningModal, setShowWarningModal] = useState(false);
+    const [warningMessage, setWarningMessage] = useState("");
 
-    const displayName = showRealmAsAuthor ? (forumName || realm) : (creatorName || "User");
+    // Fallback to fetch profile if creatorName is missing or generic "User"
+    const skipQuery = !creatorId || (!!creatorName && creatorName !== "User" && creatorName.trim() !== "");
+    const { data: creatorProfile } = apiSlice.useGetUserProfileQuery(creatorId ?? "", {
+        skip: skipQuery
+    });
+
+    const resolvedCreatorName = (creatorName && creatorName !== "User" && creatorName.trim() !== "")
+        ? creatorName 
+        : (creatorProfile?.userName || "User");
+
+    const resolvedCreatorAvatar = (creatorName && creatorName !== "User" && creatorName.trim() !== "")
+        ? creatorAvatar 
+        : (creatorProfile?.avatar || creatorAvatar || "");
+
+    const displayName = showRealmAsAuthor ? (forumName || realm) : resolvedCreatorName;
     const displayRealm = forumName || realm;
-    const avatarSrc = showRealmAsAuthor ? forumImage : creatorAvatar;
+    const avatarSrc = showRealmAsAuthor ? forumImage : resolvedCreatorAvatar;
 
     const handleVote = async (e: React.MouseEvent, voteValue: number) => {
         e.stopPropagation();
@@ -58,22 +77,30 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
         setLocalUpvote(prev => prev + delta);
         try {
             await voteThread({ threadId, vote: newVote }).unwrap();
-        } catch {
+        } catch (error: any) {
             setLocalVote(localVote);
             setLocalUpvote(localUpvote);
+            if (error?.status === 403) {
+                setWarningMessage("Bạn cần tham gia cộng đồng (realm) này để bình chọn bài viết!");
+                setShowWarningModal(true);
+            } else if (error?.status === 401) {
+                setWarningMessage("Bạn cần đăng nhập để bình chọn bài viết!");
+                setShowWarningModal(true);
+            }
         }
     };
 
     return (
-        <article 
-            className="bg-white rounded-2xl border border-surface-200/80 hover:border-surface-300 hover:shadow-card-hover transition-all duration-200 cursor-pointer overflow-hidden"
-            onClick={() => navigate(`/r/${displayRealm}/${threadId}`)}
-        >
+        <>
+            <article
+                className="bg-white rounded-2xl border border-surface-200/80 hover:border-surface-300 hover:shadow-card-hover transition-all duration-200 cursor-pointer overflow-hidden"
+                onClick={() => navigate(`/r/${displayRealm}/${threadId}`)}
+            >
             <div className="p-4 pb-3">
                 {/* Author row */}
                 <div className="flex items-center gap-2.5 mb-3">
-                    <Avatar 
-                        className="w-8 h-8" 
+                    <Avatar
+                        className="w-8 h-8"
                         src={avatarSrc}
                         name={displayName}
                     />
@@ -122,8 +149,8 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                 </h3>
 
                 {/* Body excerpt */}
-                <div 
-                    className="text-sm text-surface-600 leading-relaxed line-clamp-3" 
+                <div
+                    className="text-sm text-surface-600 leading-relaxed line-clamp-3"
                     dangerouslySetInnerHTML={{ __html: content }}
                 />
             </div>
@@ -190,7 +217,28 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                 </button>
             </div>
         </article>
-    )
+
+        <Modal show={showWarningModal} closeModal={() => setShowWarningModal(false)}>
+            <div className="flex flex-col items-center text-center" onClick={(e) => e.stopPropagation()}>
+                <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                </div>
+                <h3 className="text-base font-bold text-surface-900 mb-2">Yêu cầu tham gia</h3>
+                <p className="text-sm text-surface-500 mb-6 leading-relaxed">
+                    {warningMessage}
+                </p>
+                <button
+                    onClick={(e) => { e.stopPropagation(); setShowWarningModal(false); }}
+                    className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-full text-sm font-semibold transition-colors cursor-pointer"
+                >
+                    Đóng
+                </button>
+            </div>
+        </Modal>
+    </>
+)
 }
 
 export default ThreadCard;

@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { Realm } from "../../interfaces/interfaces";
 import { timeAgo } from "../../utils/timeAgo";
 import defaultAvatar from "../../constants/defaultAvatar";
+import apiSlice from "../../store/api";
+import Avatar from "../Avatar";
 
 interface ForumDescriptionProps {
     realm?: Realm | null;
@@ -9,10 +11,28 @@ interface ForumDescriptionProps {
 
 const ForumDescription: React.FC<ForumDescriptionProps> = ({ realm }) => {
     const [rulesExpanded, setRulesExpanded] = useState(false);
+    const { data: members, isLoading } = apiSlice.useGetForumMembersQuery(realm?.id ?? "", { skip: !realm?.id });
 
     const name = realm?.name?.trim() || "—";
     const description = realm?.description?.trim() || "Chưa có mô tả.";
     const image = realm?.forumImage?.trim() || defaultAvatar;
+
+    const moderators = (members ?? []).filter(
+        (m: any) => m.role === 0 || m.role === 1 || m.role === 2
+    );
+
+    const getRoleBadge = (role: number) => {
+        switch (role) {
+            case 0:
+                return { text: "Admin", className: "bg-red-50 text-red-600 border border-red-200" };
+            case 1:
+                return { text: "Super Mod", className: "bg-amber-50 text-amber-700 border border-amber-200" };
+            case 2:
+                return { text: "Mod", className: "bg-brand-50 text-brand-700 border border-brand-200" };
+            default:
+                return null;
+        }
+    };
 
     return (
         <div className="bg-white rounded-2xl border border-surface-200/80 overflow-hidden">
@@ -57,7 +77,39 @@ const ForumDescription: React.FC<ForumDescriptionProps> = ({ realm }) => {
 
             <div className="p-4">
                 <p className="text-sm font-semibold text-surface-700 mb-3">Kiểm duyệt viên</p>
-                <p className="text-sm text-surface-400">Danh sách sẽ hiển thị khi API cung cấp.</p>
+                {isLoading ? (
+                    <div className="flex items-center gap-2 text-surface-400 text-xs">
+                        <div className="w-4.5 h-4.5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                        Đang tải danh sách...
+                    </div>
+                ) : moderators.length > 0 ? (
+                    <div className="space-y-3">
+                        {moderators.map((mod: any) => {
+                            const badge = getRoleBadge(mod.role);
+                            return (
+                                <div key={mod.id} className="flex items-center justify-between gap-3 text-sm">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <Avatar
+                                            src={mod.avatar}
+                                            name={mod.username}
+                                            className="w-7 h-7 rounded-lg shrink-0"
+                                        />
+                                        <span className="font-medium text-surface-800 truncate">
+                                            u/{mod.username}
+                                        </span>
+                                    </div>
+                                    {badge && (
+                                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full shrink-0 ${badge.className}`}>
+                                            {badge.text}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <p className="text-xs text-surface-400 italic">Chưa có kiểm duyệt viên.</p>
+                )}
             </div>
         </div>
     );

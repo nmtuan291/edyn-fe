@@ -12,12 +12,15 @@ import Comment from "../Comment";
 import type { Comment as CommentType } from "../../../interfaces/interfaces";
 import { timeAgo, formatVoteCount } from "../../../utils/timeAgo";
 import Avatar from "../../../components/Avatar";
+import Modal from "../../../components/Modal";
 
 const ThreadContent: React.FC = () => {
     const [isOptionOpen, setIsOptionOpen] = useState<boolean>(false);
     const [localVote, setLocalVote] = useState<number | null>(null);
     const [localUpvote, setLocalUpvote] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [showWarningModal, setShowWarningModal] = useState(false);
+    const [warningMessage, setWarningMessage] = useState("");
     const [editTitle, setEditTitle] = useState("");
     const [editContent, setEditContent] = useState("");
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -39,8 +42,15 @@ const ThreadContent: React.FC = () => {
     const currentVote = localVote ?? data?.vote ?? 0;
     const currentUpvote = localUpvote ?? data?.upvote ?? 0;
 
-    const creatorName = data?.creatorName || creatorProfile?.userName || data?.forumName || "User";
-    const creatorAvatar = data?.creatorAvatar || creatorProfile?.avatar || data?.forumImage;
+    const isEdited = data?.lastUpdatedAt && data?.createdAt && 
+        (new Date(data.lastUpdatedAt).getTime() - new Date(data.createdAt).getTime() > 1000);
+
+    const creatorName = (data?.creatorName && data.creatorName !== "User" && data.creatorName.trim() !== "")
+        ? data.creatorName 
+        : (creatorProfile?.userName || data?.forumName || "User");
+    const creatorAvatar = (data?.creatorName && data.creatorName !== "User" && data.creatorName.trim() !== "")
+        ? data.creatorAvatar 
+        : (creatorProfile?.avatar || data?.creatorAvatar || data?.forumImage);
 
     useEffect(() => {
         const el = document.getElementById("context-panel");
@@ -74,9 +84,16 @@ const ThreadContent: React.FC = () => {
         setLocalUpvote(currentUpvote + delta);
         try {
             await voteThread({ threadId: data.id, vote: newVote }).unwrap();
-        } catch {
+        } catch (error: any) {
             setLocalVote(currentVote);
             setLocalUpvote(currentUpvote);
+            if (error?.status === 403) {
+                setWarningMessage("Bạn cần tham gia cộng đồng (realm) này để bình chọn bài viết!");
+                setShowWarningModal(true);
+            } else if (error?.status === 401) {
+                setWarningMessage("Bạn cần đăng nhập để bình chọn bài viết!");
+                setShowWarningModal(true);
+            }
         }
     };
 
@@ -124,7 +141,7 @@ const ThreadContent: React.FC = () => {
                     {/* Author header */}
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <Avatar 
+                            <Avatar
                                 src={creatorAvatar}
                                 name={creatorName}
                                 className="w-10 h-10"
@@ -134,12 +151,12 @@ const ThreadContent: React.FC = () => {
                                     <span className="font-semibold text-surface-900">{creatorName}</span>
                                     <span className="text-surface-400">·</span>
                                     <span className="text-surface-400">{timeAgo(data?.createdAt)}</span>
-                                    {data?.lastUpdatedAt && (
-                                        <>
-                                            <span className="text-surface-400">·</span>
-                                            <span className="text-xs text-surface-400 italic">đã chỉnh sửa</span>
-                                        </>
-                                    )}
+                                    {isEdited && (
+                                         <>
+                                             <span className="text-surface-400">·</span>
+                                             <span className="text-xs text-surface-400 italic">đã chỉnh sửa</span>
+                                         </>
+                                     )}
                                 </div>
                                 {data?.forumName && (
                                     <p
@@ -252,7 +269,7 @@ const ThreadContent: React.FC = () => {
                     ) : (
                         <div className="text-sm text-surface-700 leading-relaxed mb-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: data?.content }} />
                     )}
-                    
+
                     {/* Images */}
                     {data?.images && data.images.length > 0 && (
                         <div className="rounded-xl overflow-hidden mb-4">
@@ -350,7 +367,7 @@ const ThreadContent: React.FC = () => {
 
             {/* Comment editor */}
             <div className="mt-4">
-                <CommentEditor threadId={id ?? ""} parentComment={null} closeEditor={() => {}} />
+                <CommentEditor threadId={id ?? ""} parentComment={null} closeEditor={() => { }} />
             </div>
 
             {/* Comments */}
@@ -364,6 +381,26 @@ const ThreadContent: React.FC = () => {
                 <ForumDescription realm={realm ?? null} />,
                 portalTarget
             )}
+
+            <Modal show={showWarningModal} closeModal={() => setShowWarningModal(false)}>
+                <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-4">
+                        <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-base font-bold text-surface-900 mb-2">Yêu cầu tham gia</h3>
+                    <p className="text-sm text-surface-500 mb-6 leading-relaxed">
+                        {warningMessage}
+                    </p>
+                    <button
+                        onClick={() => setShowWarningModal(false)}
+                        className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-full text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                        Đóng
+                    </button>
+                </div>
+            </Modal>
         </>
     )
 }

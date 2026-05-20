@@ -50,8 +50,8 @@ const Sidebar: React.FC = () => {
                     key={item.path}
                     onClick={() => navigate(item.path)}
                     className={`group relative flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all cursor-pointer
-                        ${isActive(item.path) 
-                            ? "bg-brand-100 text-brand-700" 
+                        ${isActive(item.path)
+                            ? "bg-brand-100 text-brand-700"
                             : "text-surface-500 hover:bg-surface-100 hover:text-surface-700"
                         }`}
                     title={item.label}
@@ -62,7 +62,7 @@ const Sidebar: React.FC = () => {
                     </div>
                 </button>
             ))}
-            
+
             {/* Joined Forums */}
             {isLoggedIn && joinedForums && joinedForums.length > 0 && (
                 <>
@@ -72,9 +72,8 @@ const Sidebar: React.FC = () => {
                         <button
                             key={forum.forumId}
                             onClick={() => navigate(`/realm/${forum.name}`)}
-                            className={`group relative w-10 h-10 rounded-xl overflow-hidden transition-all cursor-pointer hover:ring-2 hover:ring-brand-200 ${
-                                location.pathname === `/realm/${forum.name}` ? "ring-2 ring-brand-400" : ""
-                            }`}
+                            className={`group relative w-10 h-10 rounded-xl overflow-hidden transition-all cursor-pointer hover:ring-2 hover:ring-brand-200 ${location.pathname === `/realm/${forum.name}` ? "ring-2 ring-brand-400" : ""
+                                }`}
                             title={forum.name}
                         >
                             <img

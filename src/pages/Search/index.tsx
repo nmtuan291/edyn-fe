@@ -57,6 +57,7 @@ const SearchPage: React.FC = () => {
                                 isPinned={thread.isPinned}
                                 creatorName={thread.creatorName}
                                 creatorAvatar={thread.creatorAvatar}
+                                creatorId={thread.creatorId}
                             />
                         ))
                     ) : (
