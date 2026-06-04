@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import ForumDescription from "../../../components/ForumDescription";
 import apiSlice from "../../../store/api";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import Loader from "../../../components/Loader";
 import ImageCarousel from "../../../components/ImageCarousel";
@@ -13,6 +13,7 @@ import type { Comment as CommentType } from "../../../interfaces/interfaces";
 import { timeAgo, formatVoteCount } from "../../../utils/timeAgo";
 import Avatar from "../../../components/Avatar";
 import Modal from "../../../components/Modal";
+import { openLoginModal } from "../../../store/ui";
 
 const ThreadContent: React.FC = () => {
     const [isOptionOpen, setIsOptionOpen] = useState<boolean>(false);
@@ -24,6 +25,7 @@ const ThreadContent: React.FC = () => {
     const [editTitle, setEditTitle] = useState("");
     const [editContent, setEditContent] = useState("");
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
     const optionRef = useRef<HTMLDivElement>(null);
     const { id, name: realmSlug } = useParams();
     const navigate = useNavigate();
@@ -37,6 +39,10 @@ const ThreadContent: React.FC = () => {
     const [voteThread] = apiSlice.useVoteThreadMutation();
     const [editThread] = apiSlice.useEditThreadMutation();
     const [deleteThread] = apiSlice.useDeleteThreadMutation();
+    const [votePoll] = apiSlice.useVotePollMutation();
+    const [votedPollContent, setVotedPollContent] = useState<string | null>(null);
+    const [localPollItems, setLocalPollItems] = useState<any[] | null>(null);
+    const dispatch = useDispatch();
 
     const isOwner = currentUser.id && data?.creatorId === currentUser.id;
     const currentVote = localVote ?? data?.vote ?? 0;
@@ -78,6 +84,10 @@ const ThreadContent: React.FC = () => {
 
     const handleVote = async (voteValue: number) => {
         if (!data) return;
+        if (!currentUser?.id) {
+            dispatch(openLoginModal());
+            return;
+        }
         const newVote = currentVote === voteValue ? 0 : voteValue;
         const delta = newVote - currentVote;
         setLocalVote(newVote);
@@ -126,6 +136,37 @@ const ThreadContent: React.FC = () => {
             navigate(`/r/${realmSlug}`);
         } catch (error) {
             console.error("Failed to delete thread:", error);
+        }
+    };
+
+    const handleShare = () => {
+        const url = `${window.location.origin}/r/${realmSlug}/${id}`;
+        navigator.clipboard.writeText(url).then(() => {
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        });
+    };
+
+    const handlePollVote = async (pollContent: string) => {
+        if (!data || votedPollContent) return;
+        if (!currentUser?.id) {
+            dispatch(openLoginModal());
+            return;
+        }
+        setVotedPollContent(pollContent);
+        // Optimistic update
+        const currentItems = localPollItems ?? data.pollItems ?? [];
+        setLocalPollItems(
+            currentItems.map((p: any) =>
+                p.pollContent === pollContent ? { ...p, voteCount: (p.voteCount ?? 0) + 1 } : p
+            )
+        );
+        try {
+            await votePoll({ threadId: data.id, pollContent }).unwrap();
+        } catch {
+            // Rollback on error
+            setLocalPollItems(null);
+            setVotedPollContent(null);
         }
     };
 
@@ -280,20 +321,40 @@ const ThreadContent: React.FC = () => {
                     {/* Poll items */}
                     {data?.pollItems && data.pollItems.length > 0 && (
                         <div className="mb-4 space-y-2">
-                            {data.pollItems.map((item: any, idx: number) => {
-                                const totalVotes = data.pollItems.reduce((sum: number, p: any) => sum + (p.voteCount ?? 0), 0);
+                            {(localPollItems ?? data.pollItems).map((item: any, idx: number) => {
+                                const items = localPollItems ?? data.pollItems;
+                                const totalVotes = items.reduce((sum: number, p: any) => sum + (p.voteCount ?? 0), 0);
                                 const pct = totalVotes > 0 ? Math.round((item.voteCount / totalVotes) * 100) : 0;
+                                const isVoted = votedPollContent === item.pollContent;
                                 return (
-                                    <div key={idx} className="relative bg-surface-50 rounded-xl overflow-hidden border border-surface-200">
+                                    <button
+                                        key={idx}
+                                        className={`relative w-full text-left rounded-xl overflow-hidden border transition-all cursor-pointer ${
+                                            isVoted
+                                                ? "border-brand-400 ring-1 ring-brand-200"
+                                                : "border-surface-200 hover:border-brand-300 hover:shadow-sm"
+                                        }`}
+                                        onClick={() => handlePollVote(item.pollContent)}
+                                        disabled={!!votedPollContent}
+                                    >
                                         <div
-                                            className="absolute inset-y-0 left-0 bg-brand-100/60 transition-all"
+                                            className={`absolute inset-y-0 left-0 transition-all duration-500 ${
+                                                isVoted ? "bg-brand-200/60" : "bg-brand-100/40"
+                                            }`}
                                             style={{ width: `${pct}%` }}
                                         />
                                         <div className="relative px-4 py-2.5 flex items-center justify-between">
-                                            <span className="text-sm font-medium text-surface-700">{item.pollContent}</span>
-                                            <span className="text-xs font-bold text-surface-500">{pct}% ({item.voteCount})</span>
+                                            <span className={`text-sm font-medium ${isVoted ? "text-brand-700" : "text-surface-700"}`}>
+                                                {isVoted && (
+                                                    <svg className="w-4 h-4 inline mr-1.5 -mt-0.5 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                                    </svg>
+                                                )}
+                                                {item.pollContent}
+                                            </span>
+                                            <span className={`text-xs font-bold ${isVoted ? "text-brand-600" : "text-surface-500"}`}>{pct}% ({item.voteCount})</span>
                                         </div>
-                                    </div>
+                                    </button>
                                 );
                             })}
                         </div>
@@ -328,11 +389,20 @@ const ThreadContent: React.FC = () => {
                             </svg>
                             {commentCount}
                         </button>
-                        <button className="flex items-center gap-1.5 text-surface-500 hover:text-brand-600 hover:bg-brand-50 px-3 py-2 rounded-full transition-colors text-xs font-medium cursor-pointer">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-                            </svg>
-                            Chia sẻ
+                        <button 
+                            onClick={handleShare}
+                            className="flex items-center gap-1.5 text-surface-500 hover:text-brand-600 hover:bg-brand-50 px-3 py-2 rounded-full transition-colors text-xs font-medium cursor-pointer"
+                        >
+                            {isCopied ? (
+                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                            ) : (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                                </svg>
+                            )}
+                            {isCopied ? "Đã sao chép!" : "Chia sẻ"}
                         </button>
                         <button className="flex items-center gap-1.5 text-surface-500 hover:text-danger hover:bg-red-50 px-3 py-2 rounded-full transition-colors text-xs font-medium cursor-pointer">
                             Báo cáo

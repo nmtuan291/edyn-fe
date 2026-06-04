@@ -5,6 +5,7 @@ import Profile from './pages/UserSetting/Profile'
 import Privacy from './pages/UserSetting/Privacy'
 import Preferences from './pages/UserSetting/Preferences'
 import Home from './pages/Home'
+import Explore from './pages/Explore'
 import Layout from './layout'
 import UserProfile from './pages/UserProfile'
 import ProfileComment from './pages/UserProfile/ProfileComment'
@@ -27,7 +28,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/popular" element={<Home />} />
-        <Route path="/explore" element={<Home />} />
+        <Route path="/explore" element={<Explore />} />
         <Route path="/settings" element={<UserSetting />}>
           <Route path='account' element={<Account />} />
           <Route path='profile' element={<Profile />} />

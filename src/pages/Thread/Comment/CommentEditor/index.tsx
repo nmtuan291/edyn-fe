@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import TiptapEditor from '../../../../components/TiptapEditor';
 import apiSlice from '../../../../store/api';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from '../../../../store';
+import { openLoginModal } from '../../../../store/ui';
 
 interface CommentEditorProps {
   threadId: string,
@@ -11,8 +14,15 @@ interface CommentEditorProps {
 const CommentEditor: React.FC<CommentEditorProps> = ({ threadId, parentComment, closeEditor }) => {
   const [editorContent, setEditorContent] = useState<string>("");
   const [createComment] = apiSlice.useCreateCommentMutation();
+  const dispatch = useDispatch();
+  const currentUser = useSelector((state: RootState) => state.user);
 
   const handleCreateComment = async () => {
+    if (!currentUser?.id) {
+        dispatch(openLoginModal());
+        return;
+    }
+    
     const comment = {
       threadId,
       parentId: parentComment,

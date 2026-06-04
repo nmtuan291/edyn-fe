@@ -14,8 +14,7 @@ const Home: React.FC = () => {
     const [allThreads, setAllThreads] = useState<Thread[]>([]);
 
     const { data: threadsData, isLoading, isFetching } = apiSlice.useGetHomeFeedQuery(
-        { page, pageSize: PAGE_SIZE },
-        { skip: !isLoggedIn }
+        { page, pageSize: PAGE_SIZE }
     );
 
     // Reset feed when login status changes (e.g. logging in or logging out)
@@ -50,35 +49,30 @@ const Home: React.FC = () => {
         }
     };
 
-    if (!isLoggedIn) {
-        return (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mb-8">
-                    <span className="font-logo font-extrabold text-6xl tracking-tighter bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent animate-pulse-slow">
-                        edyn
-                    </span>
-                </div>
-                <h1 className="text-3xl font-bold text-surface-900 mb-3 tracking-tight">Khám phá không gian của riêng bạn</h1>
-                <p className="text-surface-500 max-w-md mb-8 leading-relaxed">
-                    Tham gia cộng đồng Edyn để bắt đầu chia sẻ ý tưởng, kết nối với những tâm hồn đồng điệu và xây dựng không gian sáng tạo của bạn.
-                </p>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => document.getElementById('login-button')?.click()}
-                        className="px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-200 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                    >
-                        Bắt đầu ngay
-                    </button>
-                    <button className="px-8 py-3 bg-white border border-surface-200 text-surface-700 font-bold rounded-2xl hover:bg-surface-50 transition-all cursor-pointer">
-                        Tìm hiểu thêm
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div>
+            {!isLoggedIn && (
+                <div className="flex flex-col items-center justify-center py-10 text-center mb-8 bg-white rounded-3xl border border-surface-200/60 shadow-sm">
+                    <div className="mb-6">
+                        <span className="font-logo font-extrabold text-6xl tracking-tighter bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent animate-pulse-slow">
+                            edyn
+                        </span>
+                    </div>
+                    <h1 className="text-2xl font-bold text-surface-900 mb-3 tracking-tight">Khám phá không gian của riêng bạn</h1>
+                    <p className="text-surface-500 max-w-md mx-auto mb-6 leading-relaxed">
+                        Tham gia cộng đồng Edyn để chia sẻ ý tưởng, kết nối với những tâm hồn đồng điệu.
+                    </p>
+                    <div className="flex gap-4 justify-center w-full">
+                        <button
+                            onClick={() => document.getElementById('login-button')?.click()}
+                            className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-200 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                        >
+                            Bắt đầu ngay
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Feed header */}
             <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-surface-900">Bảng tin</h2>

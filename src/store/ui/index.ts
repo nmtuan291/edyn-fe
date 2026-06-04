@@ -4,11 +4,13 @@ interface UIState {
     sidebarOpen: boolean;
     /** In-flight RTK Query requests (via wrapped baseQuery); >0 shows global loading overlay. */
     apiInFlightCount: number;
+    showLoginModal: boolean;
 }
 
 const initialState: UIState = {
     sidebarOpen: false,
     apiInFlightCount: 0,
+    showLoginModal: false,
 }
 
 const uiSlice = createSlice({
@@ -27,8 +29,10 @@ const uiSlice = createSlice({
         resetApiInFlight: (state, action: PayloadAction<number | undefined>) => {
             state.apiInFlightCount = action.payload ?? 0;
         },
+        openLoginModal: (state) => { state.showLoginModal = true; },
+        closeLoginModal: (state) => { state.showLoginModal = false; },
     }
 })
 
-export const { openSidebar, closeSidebar, apiRequestStarted, apiRequestFinished, resetApiInFlight } = uiSlice.actions;
+export const { openSidebar, closeSidebar, apiRequestStarted, apiRequestFinished, resetApiInFlight, openLoginModal, closeLoginModal } = uiSlice.actions;
 export default uiSlice.reducer;

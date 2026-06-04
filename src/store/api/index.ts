@@ -205,6 +205,10 @@ const apiSlice = createApi({
             query: body => ({ url: "/forumthread/comment/vote", method: "POST", body }),
             invalidatesTags: ["Comment"],
         }),
+        votePoll: builder.mutation({
+            query: (body: { threadId: string, pollContent: string }) => ({ url: "/forumthread/thread/poll-vote", method: "POST", body }),
+            invalidatesTags: (result) => result ? [{ type: "Thread", id: result.id }] : [],
+        }),
 
         // --- Notifications ---
         getNotification: builder.query({

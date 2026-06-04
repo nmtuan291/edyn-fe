@@ -13,11 +13,11 @@ import NotificationBoard from "../NotificationBoard";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { clearUser } from "../../store/user";
+import { openLoginModal, closeLoginModal } from "../../store/ui";
 
 const Header: React.FC = () => {
     const [modalState, setModalState] = useState({
         isOptionOpen: false,
-        showLoginForm: false,
         showRegistrationForm: false,
         showCreateForum: false,
         isUserOpen: false,
@@ -38,6 +38,7 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.user);
+    const showLoginModal = useSelector((state: RootState) => state.ui.showLoginModal);
     const { data: headerProfile } = apiSlice.useGetUserProfileQuery(user.id, { skip: !isLoggedIn || !user.id });
     const headerAvatarSrc = headerProfile?.avatar;
 
@@ -133,7 +134,7 @@ const Header: React.FC = () => {
     }
 
     const handleLogin = () => {
-        setModalState(prev => ({ ...prev, showLoginForm: true }));
+        dispatch(openLoginModal());
     }
 
     const handleLogout = async () => {
@@ -158,7 +159,7 @@ const Header: React.FC = () => {
 
     const handleLoginSuccess = () => {
         setIsLoggedIn(true);
-        setModalState(prev => ({ ...prev, showLoginForm: false }));
+        dispatch(closeLoginModal());
     }
 
     // Search with debounce
@@ -204,8 +205,8 @@ const Header: React.FC = () => {
         <>
             {isLoggingOut && <Loader />}
             <LoginForm 
-                showForm={modalState.showLoginForm} 
-                closeForm={() => setModalState(prev => ({ ...prev, showLoginForm: false }))} 
+                showForm={showLoginModal} 
+                closeForm={() => dispatch(closeLoginModal())} 
                 openRegistrationForm={() => setModalState(prev => ({ ...prev, showRegistrationForm: true }))}
                 onLoginSuccess={handleLoginSuccess}/>
             <RegistrationForm 

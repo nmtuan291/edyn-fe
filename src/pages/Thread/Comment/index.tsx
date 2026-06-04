@@ -4,9 +4,10 @@ import type { Comment } from "../../../interfaces/interfaces";
 import { timeAgo, formatVoteCount } from "../../../utils/timeAgo";
 import { useChatContext } from '../../../contexts/ChatContext';
 import apiSlice from "../../../store/api";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../../../store";
 import Avatar from "../../../components/Avatar";
+import { openLoginModal } from "../../../store/ui";
 
 interface CommentProps {
     comment: Comment
@@ -24,6 +25,7 @@ const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
     const [editCommentMutation] = apiSlice.useEditCommentMutation();
     const [deleteCommentMutation] = apiSlice.useDeleteCommentMutation();
     const currentUser = useSelector((state: RootState) => state.user);
+    const dispatch = useDispatch();
 
     const [localVote, setLocalVote] = useState(comment.vote ?? 0);
     const [localUpvote, setLocalUpvote] = useState(comment.upvote ?? 0);
@@ -35,6 +37,10 @@ const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
     };
 
     const handleVote = async (voteValue: number) => {
+        if (!currentUser?.id) {
+            dispatch(openLoginModal());
+            return;
+        }
         const newVote = localVote === voteValue ? 0 : voteValue;
         const delta = newVote - localVote;
         setLocalVote(newVote);

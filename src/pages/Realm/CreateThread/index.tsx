@@ -5,6 +5,9 @@ import ForumDescription from '../../../components/ForumDescription';
 import TiptapEditor from '../../../components/TiptapEditor';
 import apiSlice from "../../../store/api";
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
+import { openLoginModal } from '../../../store/ui';
 
 interface PollType {
     pollContent: string,
@@ -26,6 +29,8 @@ const CreateThread: React.FC = () => {
 
     const { data } = apiSlice.useGetRealmQuery(name ?? "");
     const [createThreadMutation] = apiSlice.useCreateThreadMutation();
+    const dispatch = useDispatch();
+    const currentUser = useSelector((state: RootState) => state.user);
 
     useEffect(() => {
         const el = document.getElementById("context-panel");
@@ -94,6 +99,11 @@ const CreateThread: React.FC = () => {
     };
 
     const handleSubmit = async () => {
+        if (!currentUser?.id) {
+            dispatch(openLoginModal());
+            return;
+        }
+
         try {
             const imageUrls: string[] = [];
             for (const image of images) {

@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import apiSlice from "../../store/api";
 import { canAccessForumManagement, readRoleFromApi } from "../../interfaces/interfaces";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { openLoginModal } from "../../store/ui";
 
 interface ForumBannerProps {
     forumId: string,
@@ -19,11 +22,17 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
     const { data: forumPerm, refetch: refetchPermissions } = apiSlice.useGetForumPermissionsQuery(forumId, { skip: !forumId });
     const [joinForum, { isLoading: joinLoading }] = apiSlice.useJoinForumMutation();
     const [leaveForum, { isLoading: leaveLoading }] = apiSlice.useLeaveForumMutation();
+    const dispatch = useDispatch();
+    const currentUser = useSelector((state: RootState) => state.user);
 
     const isForumMember = !!forumPerm;
     const showManage = canAccessForumManagement(readRoleFromApi(forumPerm));
 
     const handleJoinRealm = async () => {
+        if (!currentUser?.id) {
+            dispatch(openLoginModal());
+            return;
+        }
         if (!forumId) return;
         try {
             await joinForum(forumId).unwrap();
@@ -34,6 +43,10 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
     };
 
     const handleLeaveRealm = async () => {
+        if (!currentUser?.id) {
+            dispatch(openLoginModal());
+            return;
+        }
         if (!forumId) return;
         if (!window.confirm(`Bạn có chắc chắn muốn rời khỏi cộng đồng ${forumName}?`)) return;
         try {
@@ -92,7 +105,13 @@ const ForumBanner: React.FC<ForumBannerProps> = ({ forumId, forumName, forumImag
                     )}
                     <button
                         className="px-4 py-2 text-sm font-medium border border-surface-300 text-surface-700 hover:bg-surface-50 rounded-full transition-colors cursor-pointer"
-                        onClick={() => navigate(`/r/${forumName}/create`)}
+                        onClick={() => {
+                            if (!currentUser?.id) {
+                                dispatch(openLoginModal());
+                                return;
+                            }
+                            navigate(`/r/${forumName}/create`);
+                        }}
                     >
                         Tạo bài đăng
                     </button>
