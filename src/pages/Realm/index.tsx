@@ -125,8 +125,9 @@ const RealmPage: React.FC = () => {
                                 threadId={thread.id} 
                                 title={thread.title} 
                                 content={thread.content} 
-                                images={thread.images} 
-                                createdAt={thread.createdAt} 
+                                images={thread.images}
+                                videos={thread.videos}
+                                createdAt={thread.createdAt}
                                 voteCount={thread.upvote}
                                 realm={name ?? ""}
                                 vote={thread.vote}

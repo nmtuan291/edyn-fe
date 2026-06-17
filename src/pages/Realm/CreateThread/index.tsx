@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AttachFile, Image, Poll, Delete } from '@mui/icons-material';
+import { AttachFile, Image, Poll, Delete, VideoLibrary } from '@mui/icons-material';
 import { createPortal } from 'react-dom';
 import ForumDescription from '../../../components/ForumDescription';
 import TiptapEditor from '../../../components/TiptapEditor';
@@ -15,10 +15,11 @@ interface PollType {
 }
 
 const CreateThread: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'text' | 'image' | 'poll'>('text');
+    const [activeTab, setActiveTab] = useState<'text' | 'image' | 'video' | 'poll'>('text');
     const [images, setImages] = useState<File[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
     const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
+    const [video, setVideo] = useState<File | null>(null);
     const navigate = useNavigate();
     const { name } = useParams();
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
@@ -105,20 +106,30 @@ const CreateThread: React.FC = () => {
         }
 
         try {
+            const cloudName: string = "dh7jem3br";
+
             const imageUrls: string[] = [];
             for (const image of images) {
                 const formData = new FormData();
                 formData.append("upload_preset", "product_upload");
                 formData.append("file", image);
-                const cloudName: string = "dh7jem3br";
                 const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`,
-                    {
-                        method: "POST",
-                        body: formData
-                    }
+                    { method: "POST", body: formData }
                 );
                 const responseJson = await response.json();
                 imageUrls.push(responseJson.secure_url);
+            }
+
+            const videoUrls: string[] = [];
+            if (video) {
+                const formData = new FormData();
+                formData.append("upload_preset", "product_upload");
+                formData.append("file", video);
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+                    { method: "POST", body: formData }
+                );
+                const responseJson = await response.json();
+                videoUrls.push(responseJson.secure_url);
             }
 
             const forumThread = {
@@ -129,6 +140,7 @@ const CreateThread: React.FC = () => {
                 slug: "",
                 upvote: 0,
                 images: imageUrls,
+                videos: videoUrls,
                 pollItems,
                 vote: 0
             }
@@ -144,6 +156,7 @@ const CreateThread: React.FC = () => {
     const tabs = [
         { id: 'text' as const, label: 'Văn bản', icon: <AttachFile style={{ fontSize: 18 }} /> },
         { id: 'image' as const, label: 'Hình ảnh', icon: <Image style={{ fontSize: 18 }} /> },
+        { id: 'video' as const, label: 'Video', icon: <VideoLibrary style={{ fontSize: 18 }} /> },
         { id: 'poll' as const, label: 'Bình chọn', icon: <Poll style={{ fontSize: 18 }} /> },
     ];
 
@@ -296,6 +309,57 @@ const CreateThread: React.FC = () => {
                                             </svg>
                                             Thêm ảnh
                                         </label>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Video upload */}
+                    {activeTab === 'video' && (
+                        <div>
+                            <div className="border-2 border-dashed border-surface-300 rounded-xl p-8 text-center bg-surface-50/50">
+                                {!video ? (
+                                    <div>
+                                        <div className="w-14 h-14 bg-surface-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <VideoLibrary className="text-surface-400" style={{ fontSize: 24 }} />
+                                        </div>
+                                        <p className="text-sm text-surface-600 mb-1">Chọn video để tải lên</p>
+                                        <p className="text-xs text-surface-400 mb-4">MP4, MOV, AVI (tối đa 100MB)</p>
+                                        <input
+                                            type="file"
+                                            accept="video/*"
+                                            className="hidden"
+                                            id="video-upload"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setVideo(file);
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor="video-upload"
+                                            className="inline-block bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors"
+                                        >
+                                            Chọn video
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <video
+                                            src={URL.createObjectURL(video)}
+                                            controls
+                                            className="w-full max-h-64 rounded-xl object-contain mb-4"
+                                        />
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-surface-500 truncate max-w-[200px]">{video.name}</span>
+                                            <button
+                                                className="flex items-center gap-1.5 text-danger hover:bg-red-50 px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer"
+                                                onClick={() => setVideo(null)}
+                                            >
+                                                <Delete style={{ fontSize: 16 }} />
+                                                Xóa
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>

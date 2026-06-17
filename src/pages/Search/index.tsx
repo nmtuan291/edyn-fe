@@ -47,6 +47,7 @@ const SearchPage: React.FC = () => {
                                 title={thread.title}
                                 content={thread.content}
                                 images={thread.images}
+                                videos={thread.videos}
                                 createdAt={thread.createdAt}
                                 voteCount={thread.upvote}
                                 realm={thread.forumName || ""}

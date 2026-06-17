@@ -61,9 +61,9 @@ const UserProfile: React.FC = () => {
 
             <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
                 <NavLink to="" end className={navLinkClass}>Tổng quan</NavLink>
-                <NavLink to="" className={navLinkClass}>Bài đăng</NavLink>
+                <NavLink to="posts" className={navLinkClass}>Bài đăng</NavLink>
                 <NavLink to="comment" className={navLinkClass}>Bình luận</NavLink>
-                <NavLink to="" className={navLinkClass}>Đã lưu</NavLink>
+                <NavLink to="saved" className={navLinkClass}>Đã lưu</NavLink>
                 <NavLink to="upvoted" className={navLinkClass}>Đã thích</NavLink>
             </div>
 

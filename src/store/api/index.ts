@@ -8,7 +8,7 @@ const apiSlice = createApi({
     endpoints: builder => ({
         // --- Home Feed ---
         getHomeFeed: builder.query({
-            query: ({ page = 1, pageSize = 20 }: { page?: number, pageSize?: number } = {}) => `/feed?page=${page}&pageSize=${pageSize}`,
+            query: ({ page = 1, pageSize = 20, sort = "Hot", date = "All" }: { page?: number, pageSize?: number, sort?: "Hot" | "Latest" | "Top", date?: "Day" | "Month" | "Year" | "All" } = {}) => `/feed?page=${page}&pageSize=${pageSize}&sort=${sort}&date=${date}`,
             providesTags: ["ThreadList"],
         }),
 
@@ -92,6 +92,9 @@ const apiSlice = createApi({
             query: () => "/forum/joined",
             providesTags: ["JoinedForums"],
         }),
+        getRecentForums: builder.query({
+            query: () => "/forum/recent",
+        }),
         getForumMembers: builder.query({
             query: (forumId: string) => `/forum/${forumId}/members`,
             providesTags: (_result, _error, forumId) => [{ type: "ForumMembers", id: forumId }],
@@ -156,10 +159,10 @@ const apiSlice = createApi({
             providesTags: (result) => result ? [{ type: "Thread", id: result.id }] : [],
         }),
         editThread: builder.mutation({
-            query: ({ threadId, title, content }: { threadId: string, title?: string, content?: string }) => ({
+            query: ({ threadId, title, content, videos }: { threadId: string, title?: string, content?: string, videos?: string[] }) => ({
                 url: `/forumthread/thread/${threadId}`,
                 method: "PUT",
-                body: { title, content },
+                body: { title, content, videos },
             }),
             invalidatesTags: (result) => result ? [{ type: "Thread", id: result.id }, "ThreadList"] : [],
         }),
@@ -169,6 +172,14 @@ const apiSlice = createApi({
                 method: "DELETE",
             }),
             invalidatesTags: ["ThreadList"],
+        }),
+        pinThread: builder.mutation({
+            query: ({ threadId, isPinned }: { threadId: string, isPinned: boolean }) => ({
+                url: `/forumthread/thread/${threadId}/pin`,
+                method: "PUT",
+                body: { isPinned },
+            }),
+            invalidatesTags: (result) => result ? [{ type: "Thread", id: result.id }, "ThreadList"] : ["ThreadList"],
         }),
 
         // --- Comments ---

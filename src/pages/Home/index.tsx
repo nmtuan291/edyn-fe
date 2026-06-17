@@ -11,19 +11,19 @@ const Home: React.FC = () => {
     const user = useSelector((state: RootState) => state.user);
     const isLoggedIn = !!user.id;
     const [page, setPage] = useState(1);
+    const [sort, setSort] = useState<"Hot" | "Latest" | "Top">("Hot");
+    const [dateRange, setDateRange] = useState<"Day" | "Month" | "Year" | "All">("All");
     const [allThreads, setAllThreads] = useState<Thread[]>([]);
 
     const { data: threadsData, isLoading, isFetching } = apiSlice.useGetHomeFeedQuery(
-        { page, pageSize: PAGE_SIZE }
+        { page, pageSize: PAGE_SIZE, sort, date: dateRange }
     );
 
-    // Reset feed when login status changes (e.g. logging in or logging out)
+    // Reset feed when login status, sort, or time window changes
     useEffect(() => {
         setPage(1);
         setAllThreads([]);
-    }, [isLoggedIn]);
-
-    console.log("Home Feed API Status:", { threadsData, isLoading, isFetching });
+    }, [isLoggedIn, sort, dateRange]);
 
     useEffect(() => {
         const items = Array.isArray(threadsData) ? threadsData : threadsData?.items;
@@ -76,14 +76,52 @@ const Home: React.FC = () => {
             {/* Feed header */}
             <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-surface-900">Bảng tin</h2>
-                <div className="flex gap-1">
-                    <button className="px-3 py-1.5 text-xs font-medium bg-brand-100 text-brand-700 rounded-full cursor-pointer">
-                        Mới nhất
-                    </button>
-                    <button className="px-3 py-1.5 text-xs font-medium text-surface-500 hover:bg-surface-100 rounded-full transition-colors cursor-pointer">
+                {allThreads.length > 0 && (
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setSort("Hot")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
+                            sort === "Hot"
+                                ? "bg-brand-100 text-brand-700"
+                                : "text-surface-500 hover:bg-surface-100"
+                        }`}
+                    >
                         Phổ biến
                     </button>
+                    <button
+                        onClick={() => setSort("Latest")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
+                            sort === "Latest"
+                                ? "bg-brand-100 text-brand-700"
+                                : "text-surface-500 hover:bg-surface-100"
+                        }`}
+                    >
+                        Mới nhất
+                    </button>
+                    <button
+                        onClick={() => setSort("Top")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
+                            sort === "Top"
+                                ? "bg-brand-100 text-brand-700"
+                                : "text-surface-500 hover:bg-surface-100"
+                        }`}
+                    >
+                        Hàng đầu
+                    </button>
+                    {sort === "Top" && (
+                        <select
+                            value={dateRange}
+                            onChange={(e) => setDateRange(e.target.value as "Day" | "Month" | "Year" | "All")}
+                            className="ml-1 px-2 py-1.5 text-xs font-medium text-surface-600 bg-surface-50 border border-surface-200 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                        >
+                            <option value="Day">Hôm nay</option>
+                            <option value="Month">Tháng này</option>
+                            <option value="Year">Năm nay</option>
+                            <option value="All">Tất cả</option>
+                        </select>
+                    )}
                 </div>
+                )}
             </div>
 
             {/* Loading skeleton (only for initial load) */}
@@ -112,6 +150,7 @@ const Home: React.FC = () => {
                         title={thread.title}
                         content={thread.content}
                         images={thread.images}
+                        videos={thread.videos}
                         createdAt={thread.createdAt}
                         voteCount={thread.upvote}
                         realm={thread.forumName || ""}
@@ -148,8 +187,10 @@ const Home: React.FC = () => {
 
                 {!isLoading && allThreads.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-surface-200/60 shadow-sm px-6 text-center">
-                        <div className="w-16 h-16 bg-surface-100 rounded-2xl flex items-center justify-center mb-6 text-3xl">
-                            📭
+                        <div className="mb-6">
+                            <span className="font-logo font-extrabold text-5xl tracking-tighter bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
+                                edyn
+                            </span>
                         </div>
                         <h3 className="text-xl font-bold text-surface-900 mb-2">Bảng tin đang trống</h3>
                         <p className="text-surface-500 max-w-sm mb-8 text-sm">

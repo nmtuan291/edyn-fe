@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import apiSlice from "../../store/api";
-import type { ForumUser } from "../../interfaces/interfaces";
+import type { ForumUser, Realm } from "../../interfaces/interfaces";
 
 const Sidebar: React.FC = () => {
     // sidebarOpen was unused
@@ -9,6 +9,7 @@ const Sidebar: React.FC = () => {
 
     const isLoggedIn = !!localStorage.getItem("jwt");
     const { data: joinedForums } = apiSlice.useGetJoinedForumsQuery(undefined, { skip: !isLoggedIn });
+    const { data: recentForums } = apiSlice.useGetRecentForumsQuery(undefined, { skip: !isLoggedIn });
 
     const navItems = [
         {
@@ -62,6 +63,33 @@ const Sidebar: React.FC = () => {
                     </div>
                 </button>
             ))}
+
+            {/* Recently Visited Forums */}
+            {isLoggedIn && recentForums && (recentForums as Realm[]).length > 0 && (
+                <>
+                    <div className="w-8 h-px bg-surface-200 my-2" />
+                    <p className="text-[9px] text-surface-400 uppercase tracking-wider font-semibold mb-1">Gần đây</p>
+                    {(recentForums as Realm[]).map((forum) => (
+                        <button
+                            key={forum.id}
+                            onClick={() => navigate(`/realm/${forum.name}`)}
+                            className={`group relative w-10 h-10 rounded-xl overflow-hidden transition-all cursor-pointer hover:ring-2 hover:ring-brand-200 ${
+                                location.pathname === `/realm/${forum.name}` ? "ring-2 ring-brand-400" : ""
+                            }`}
+                            title={forum.name}
+                        >
+                            <img
+                                src={forum.forumImage}
+                                alt={forum.name}
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute left-full ml-3 px-2.5 py-1 bg-surface-800 text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap pointer-events-none z-10">
+                                {forum.name}
+                            </div>
+                        </button>
+                    ))}
+                </>
+            )}
 
             {/* Joined Forums */}
             {isLoggedIn && joinedForums && joinedForums.length > 0 && (

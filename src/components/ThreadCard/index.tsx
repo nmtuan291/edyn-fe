@@ -14,6 +14,7 @@ interface ThreadCardProps {
     title: string,
     content: string,
     images: string[],
+    videos?: string[],
     createdAt: string,
     threadId: string,
     voteCount: number,
@@ -33,6 +34,7 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
     title,
     content,
     images,
+    videos,
     createdAt,
     threadId,
     voteCount,
@@ -180,6 +182,20 @@ const ThreadCard: React.FC<ThreadCardProps> = ({
                     <div className="rounded-xl overflow-hidden">
                         <ImageCarousel images={images} />
                     </div>
+                </div>
+            )}
+
+            {/* Videos */}
+            {videos && videos.length > 0 && (
+                <div className="px-4 pb-3" onClick={(e) => e.stopPropagation()}>
+                    {videos.map((src, idx) => (
+                        <video
+                            key={idx}
+                            src={src}
+                            controls
+                            className="w-full max-h-64 rounded-xl object-contain bg-black"
+                        />
+                    ))}
                 </div>
             )}
 

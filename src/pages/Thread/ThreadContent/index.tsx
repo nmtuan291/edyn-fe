@@ -10,6 +10,7 @@ import ImageCarousel from "../../../components/ImageCarousel";
 import CommentEditor from "../Comment/CommentEditor";
 import Comment from "../Comment";
 import type { Comment as CommentType } from "../../../interfaces/interfaces";
+import { hasPermission, ForumPermissionType } from "../../../interfaces/interfaces";
 import { timeAgo, formatVoteCount } from "../../../utils/timeAgo";
 import Avatar from "../../../components/Avatar";
 import Modal from "../../../components/Modal";
@@ -39,12 +40,19 @@ const ThreadContent: React.FC = () => {
     const [voteThread] = apiSlice.useVoteThreadMutation();
     const [editThread] = apiSlice.useEditThreadMutation();
     const [deleteThread] = apiSlice.useDeleteThreadMutation();
+    const [pinThread] = apiSlice.usePinThreadMutation();
+    const { data: forumPerm } = apiSlice.useGetForumPermissionsQuery(data?.forumId!, {
+        skip: !data?.forumId || !currentUser.id,
+    });
     const [votePoll] = apiSlice.useVotePollMutation();
-    const [votedPollContent, setVotedPollContent] = useState<string | null>(null);
-    const [localPollItems, setLocalPollItems] = useState<any[] | null>(null);
+    const [votedPollContent, setVotedPollContent] = useState<string | undefined>(undefined);
+    const [localPollItems, setLocalPollItems] = useState<any[] | undefined>(undefined);
     const dispatch = useDispatch();
 
     const isOwner = currentUser.id && data?.creatorId === currentUser.id;
+    const effectivePerms = forumPerm?.effectivePermissions ?? 0;
+    const canDeleteThread = isOwner || hasPermission(effectivePerms, ForumPermissionType.DeleteThread);
+    const canPinThread = hasPermission(effectivePerms, ForumPermissionType.PinThread);
     const currentVote = localVote ?? data?.vote ?? 0;
     const currentUpvote = localUpvote ?? data?.upvote ?? 0;
 
@@ -79,6 +87,8 @@ const ThreadContent: React.FC = () => {
         if (data) {
             setLocalVote(data.vote);
             setLocalUpvote(data.upvote);
+            setVotedPollContent(data.userPollVote);
+            setLocalPollItems(data.pollItems);
         }
     }, [data]);
 
@@ -139,6 +149,16 @@ const ThreadContent: React.FC = () => {
         }
     };
 
+    const handleTogglePin = async () => {
+        if (!data) return;
+        setIsOptionOpen(false);
+        try {
+            await pinThread({ threadId: data.id, isPinned: !data.isPinned }).unwrap();
+        } catch (error) {
+            console.error("Failed to pin thread:", error);
+        }
+    };
+
     const handleShare = () => {
         const url = `${window.location.origin}/r/${realmSlug}/${id}`;
         navigator.clipboard.writeText(url).then(() => {
@@ -148,18 +168,25 @@ const ThreadContent: React.FC = () => {
     };
 
     const handlePollVote = async (pollContent: string) => {
-        if (!data || votedPollContent) return;
+        if (!data) return;
         if (!currentUser?.id) {
             dispatch(openLoginModal());
             return;
         }
-        setVotedPollContent(pollContent);
+
+        const isTogglingOff = votedPollContent === pollContent;
+        const previousVote = votedPollContent;
+
+        setVotedPollContent(isTogglingOff ? undefined : pollContent);
         // Optimistic update
         const currentItems = localPollItems ?? data.pollItems ?? [];
         setLocalPollItems(
-            currentItems.map((p: any) =>
-                p.pollContent === pollContent ? { ...p, voteCount: (p.voteCount ?? 0) + 1 } : p
-            )
+            currentItems.map((p: any) => {
+                let diff = 0;
+                if (p.pollContent === pollContent) diff += (isTogglingOff ? -1 : 1);
+                if (!isTogglingOff && previousVote && p.pollContent === previousVote) diff -= 1;
+                return { ...p, voteCount: Math.max(0, (p.voteCount ?? 0) + diff) };
+            })
         );
         try {
             await votePoll({ threadId: data.id, pollContent }).unwrap();
@@ -222,20 +249,28 @@ const ThreadContent: React.FC = () => {
                             </button>
                             <div className={`absolute right-0 top-full mt-1 bg-white rounded-xl shadow-dropdown border border-surface-200 w-40 overflow-hidden z-10 ${!isOptionOpen ? "hidden" : ""}`}>
                                 {isOwner && (
-                                    <>
-                                        <button
-                                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer"
-                                            onClick={handleStartEdit}
-                                        >
-                                            Chỉnh sửa
-                                        </button>
-                                        <button
-                                            className="w-full text-left px-4 py-2.5 text-sm text-danger hover:bg-red-50 transition-colors cursor-pointer border-t border-surface-100"
-                                            onClick={() => { setShowDeleteConfirm(true); setIsOptionOpen(false); }}
-                                        >
-                                            Xóa bài đăng
-                                        </button>
-                                    </>
+                                    <button
+                                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer"
+                                        onClick={handleStartEdit}
+                                    >
+                                        Chỉnh sửa
+                                    </button>
+                                )}
+                                {canPinThread && (
+                                    <button
+                                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer border-t border-surface-100"
+                                        onClick={handleTogglePin}
+                                    >
+                                        {data?.isPinned ? "Bỏ ghim" : "Ghim bài đăng"}
+                                    </button>
+                                )}
+                                {canDeleteThread && (
+                                    <button
+                                        className="w-full text-left px-4 py-2.5 text-sm text-danger hover:bg-red-50 transition-colors cursor-pointer border-t border-surface-100"
+                                        onClick={() => { setShowDeleteConfirm(true); setIsOptionOpen(false); }}
+                                    >
+                                        Xóa bài đăng
+                                    </button>
                                 )}
                                 <button className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer border-t border-surface-100">Lưu</button>
                                 <button className="w-full text-left px-4 py-2.5 text-sm hover:bg-surface-50 transition-colors cursor-pointer border-t border-surface-100">Ẩn</button>
@@ -318,6 +353,20 @@ const ThreadContent: React.FC = () => {
                         </div>
                     )}
 
+                    {/* Videos */}
+                    {data?.videos && data.videos.length > 0 && (
+                        <div className="space-y-3 mb-4">
+                            {data.videos.map((src: string, idx: number) => (
+                                <video
+                                    key={idx}
+                                    src={src}
+                                    controls
+                                    className="w-full rounded-xl object-contain bg-black"
+                                />
+                            ))}
+                        </div>
+                    )}
+
                     {/* Poll items */}
                     {data?.pollItems && data.pollItems.length > 0 && (
                         <div className="mb-4 space-y-2">
@@ -335,7 +384,6 @@ const ThreadContent: React.FC = () => {
                                                 : "border-surface-200 hover:border-brand-300 hover:shadow-sm"
                                         }`}
                                         onClick={() => handlePollVote(item.pollContent)}
-                                        disabled={!!votedPollContent}
                                     >
                                         <div
                                             className={`absolute inset-y-0 left-0 transition-all duration-500 ${
@@ -443,7 +491,11 @@ const ThreadContent: React.FC = () => {
             {/* Comments */}
             <div className="mt-6 space-y-1">
                 {(comments ?? []).map((comment: CommentType) => (
-                    <Comment key={comment.id} comment={comment} />
+                    <Comment
+                        key={comment.id}
+                        comment={comment}
+                        canModerate={hasPermission(effectivePerms, ForumPermissionType.DeleteComment)}
+                    />
                 ))}
             </div>
 
