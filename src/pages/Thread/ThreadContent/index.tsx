@@ -192,8 +192,8 @@ const ThreadContent: React.FC = () => {
             await votePoll({ threadId: data.id, pollContent }).unwrap();
         } catch {
             // Rollback on error
-            setLocalPollItems(null);
-            setVotedPollContent(null);
+            setLocalPollItems(undefined);
+            setVotedPollContent(undefined);
         }
     };
 
